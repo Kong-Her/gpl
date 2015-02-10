@@ -1,0 +1,130 @@
+//Her, Kong
+//gpl FallDown Game
+
+// Set up system variables used to create window
+int window_width = 600;
+int window_height = 600;
+string window_title = "gpl FALLDOWN";
+int i;
+int j;
+int rand;
+int ball_size = window_width/35;
+rectangle bricks[6];
+
+forward animation ball_animate(circle cur_ball);
+
+//animation handler
+circle ball(x = window_width/2 - ball_size/2, y = window_height - ball_size*3, 
+            radius = ball_size, animation_block = ball_animate);
+
+initialization
+{
+    for (i = 0; i < 6; i += 1)
+    {
+        bricks[i].h = window_height/15;
+    }	
+    bricks[0].x = 80;
+    bricks[0].y = 300;
+    bricks[0].w = window_width;
+    bricks[1].x = 0;
+    bricks[1].y = 200;
+    bricks[1].w = 370;
+    bricks[2].x = 100;
+    bricks[2].y = 100;
+    bricks[2].w = window_width;
+    bricks[3].x = 0;
+    bricks[3].y = 0;
+    bricks[3].w = 280;
+    bricks[4].x = 150;
+    bricks[4].y = -100;
+    bricks[4].w = window_width;
+    bricks[5].x = 0;
+    bricks[5].y = -200;
+    bricks[5].w = 300;
+}
+
+animation ball_animate(circle cur_ball)
+{
+    //the speed at which each bar is moving up
+    bricks[0].y += 3;
+    bricks[1].y += 3;
+    bricks[2].y += 3;
+    bricks[3].y += 3;        
+    bricks[4].y += 3;
+    bricks[5].y += 3;
+
+    //the ball's downward movement speed 
+    ball.y -= 6;
+
+    //loop through the brick blocks to determine which one is not visible
+    //and randomly recreate new brick blocks
+    for (j = 0; j < 6; j += 1)
+    {
+        if (bricks[j].y > window_height)
+        {
+            //used this statement to decide which sides
+            //the bar begin from
+            if (j % 2 == 0)
+            {
+                bricks[j].x = random(window_width/2) + ball_size*2;                
+                bricks[j].y = -2;
+                bricks[j].w = window_width;
+            }
+            else
+            {
+                bricks[j].x = 0;
+                bricks[j].y = -2;
+                bricks[j].w = random(window_width/2 - ball_size*2) + window_width/2;                
+            }
+        }
+    }
+
+    //detection of the ball's contact with the brick blocks
+    //set the ball's y-axis so it doesn't go through the blocks
+    if (cur_ball touches bricks[0])
+    {
+        ball.y = bricks[0].y + ball_size + bricks[0].h/2;
+    }
+    if (cur_ball touches bricks[1])
+    {
+        ball.y = bricks[1].y + ball_size + bricks[1].h/2;
+    }
+    if (cur_ball touches bricks[2])
+    {
+        ball.y = bricks[2].y + ball_size + bricks[2].h/2;
+    }
+    if (cur_ball touches bricks[3])
+    {
+        ball.y = bricks[3].y + ball_size + bricks[3].h/2;
+    }
+    if (cur_ball touches bricks[4])
+    {
+        ball.y = bricks[4].y + ball_size + bricks[4].h/2;
+    }
+    if (cur_ball touches bricks[5])
+    {
+        ball.y = bricks[5].y + ball_size + bricks[5].h/2;
+    }
+    if (cur_ball.y < ball_size)
+    {
+        ball.y += ball_size;
+    }
+
+}
+//event handlers
+//left and right arrows to determine ball movement
+//detect when ball is at the sides, so it doesn't disappear
+on leftarrow
+{
+    if (ball.x > 0)
+    {
+        ball.x -= 30;
+    }
+}
+on rightarrow
+{ 
+    if (ball.x < window_width - ball_size*2.5)
+    {
+        ball.x += 30;
+    }
+}

@@ -1,0 +1,4 @@
+parser.cpp::main() reading file tests/t021.in
+parser.cpp::main() about to call yyparse()
+type zero or more record declarations followed by ^D:
+

@@ -1,0 +1,16 @@
+parser.cpp::main() reading file tests/t008.in
+parser.cpp::main() about to call yyparse()
+type zero or more record declarations followed by ^D:
+
+------------------------------------------------------
+record George
+{
+
+  name = 'George Washington' (string)
+------------------------------------------------------
+
+parser.cpp::main() after call to yyparse()
+
+yyparse() found errors
+
+parser.cpp::main() end of program.
