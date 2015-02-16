@@ -21,6 +21,7 @@ using namespace std;
  int            union_int;
  double         union_double;
  std::string    *union_string;  // MUST be a pointer to a string (this sucks!)
+ Gpl_type           union_gpl_type;
 }
 
 // turn on verbose (longer) error messages
@@ -160,14 +161,28 @@ declaration:
 //---------------------------------------------------------------------
 variable_declaration:
     simple_type  T_ID  optional_initializer
-    | simple_type  T_ID  T_LBRACKET expression T_RBRACKET
+    {
+    }
+    //| simple_type  T_ID  T_LBRACKET expression T_RBRACKET
+    //loop through array and print out correct output associated w/ type
+    | simple_type T_ID T_LBRACKET T_INT_CONSTANT T_RBRACKET
+    {
+
+    }
     ;
 
 //---------------------------------------------------------------------
+%type <union_gpl_type> simple_type;
 simple_type:
     T_INT
+    {
+    }
     | T_DOUBLE
+    {
+    }
     | T_STRING
+    {
+    }
     ;
 
 //---------------------------------------------------------------------
