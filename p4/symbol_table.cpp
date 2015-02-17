@@ -26,16 +26,20 @@ void Symbol_table::print(ostream &os)
     for (map<string, Symbol*>::iterator it = sym_table.begin();
          it != sym_table.end(); it++)
     {
-	switch (it->second->getType())
+	if (it->second->getType() == INT)
 	{
-	    case INT:
-	        os << "int " << it->second->getId() << " " << it->second->getInt() << endl; 
-	        break;
-	    case DOUBLE:
-	        os << "double " << it->second->getId() << " " << it->second->getDouble() << endl;
-	        break;
-	    case STRING:
-	        break;
+	    os << "int " << it->second->getId();
+	    os << " " << it->second->getInt() << endl; 
+	}	
+	else if (it->second->getType() == DOUBLE)
+	{
+	    os << "double " << it->second->getId();
+            os << " " << it->second->getDouble() << endl;
+	}
+	else if (it->second->getType() == STRING)
+	{
+	    os << "string " << it->second->getId();
+      	    os << " \"" << it->second->getString() << "\"" << endl;
 	}
     }
 }

@@ -11,6 +11,7 @@ extern int line_count;            // current line in the input; from record.l
 #include "parser.h"
 #include <iostream>
 #include <string>
+#include <sstream>
 using namespace std;
 
 // bison syntax to indicate the end of the header
@@ -189,7 +190,35 @@ variable_declaration:
     //loop through array and print out correct output associated w/ type
     | simple_type T_ID T_LBRACKET T_INT_CONSTANT T_RBRACKET
     {
+	Symbol_table *symTable = Symbol_table::instance();
+	Symbol *new_symbol;
+	ostringstream str;
 
+	for (int i = 0; i < $4; i++)
+	{
+            if ($1 == INT)
+            {
+	        str << *$2 << "[" << i << "]";
+	        new_symbol = new Symbol($1, str.str(), 42);
+  	    }
+	    else if ($1 == DOUBLE)
+	    {
+	        str << *$2 << "[" << i << "]";
+	        new_symbol = new Symbol($1, str.str(), 3.14159);
+	    }
+	    else if ($1 == STRING)
+	    {
+	        str << *$2 << "[" << i << "]";
+	        new_symbol = new Symbol($1, str.str(), "Hello world");
+	    }
+	    if (!symTable->insert(new_symbol))
+	    {
+               // error_header();
+	        Error::error(Error::PREVIOUSLY_DECLARED_VARIABLE, *$2, "", "");
+	    }
+	    str.clear();
+	    str.str(string());
+        }
     }
     ;
 
