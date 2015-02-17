@@ -3,19 +3,19 @@
 Symbol::Symbol()
 {
 }
-Symbol::Symbol(string var_name, Gpl_type gpl_type, int val)
+Symbol::Symbol(Gpl_type gpl_type, string var_name, int val)
 {
     m_var_name = var_name;
     m_gpl_type = gpl_type;
     m_iVal = val;
 }
-Symbol::Symbol(string var_name, Gpl_type gpl_type, double val)
+Symbol::Symbol(Gpl_type gpl_type, string var_name, double val)
 {
     m_var_name = var_name;
     m_gpl_type = gpl_type;
     m_dVal = val;
 }
-Symbol::Symbol(string var_name, Gpl_type gpl_type, string val)
+Symbol::Symbol(Gpl_type gpl_type, string var_name, string val)
 {
     m_var_name = var_name;
     m_gpl_type = gpl_type;
@@ -36,4 +36,8 @@ string Symbol::getId()
 string Symbol::getString()
 {
     return m_strVal;
+}
+Gpl_type Symbol::getType()
+{
+    return m_gpl_type;
 }

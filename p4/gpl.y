@@ -21,7 +21,7 @@ using namespace std;
  int            union_int;
  double         union_double;
  std::string    *union_string;  // MUST be a pointer to a string (this sucks!)
- Gpl_type           union_gpl_type;
+ Gpl_type       union_gpl_type;
 }
 
 // turn on verbose (longer) error messages
@@ -124,6 +124,7 @@ using namespace std;
 %token <union_int> T_INT_CONSTANT    "int constant"
 %token <union_double> T_DOUBLE_CONSTANT "double constant"
 %token <union_string> T_STRING_CONSTANT "string constant"
+%type <union_gpl_type> simple_type;
 
 // special token that does not match any production
 // used for characters that are not part of the language
@@ -162,6 +163,27 @@ declaration:
 variable_declaration:
     simple_type  T_ID  optional_initializer
     {
+	Symbol_table *symTable = Symbol_table::instance();
+	Symbol *new_symbol;
+
+        if ($1 == INT)
+	{
+	    new_symbol = new Symbol($1, *$2, 42);
+	}
+	else if ($1 == DOUBLE)
+	{
+	    new_symbol = new Symbol($1, *$2, 3.14159);
+	}
+	else if ($1 == STRING)
+	{
+	    new_symbol = new Symbol($1, *$2, "Hello world");
+	}
+	if (!symTable->insert(new_symbol))
+	{
+	    //Error::error_header();
+	    Error::error(Error::PREVIOUSLY_DECLARED_VARIABLE, *$2, "", "");
+	}
+	   
     }
     //| simple_type  T_ID  T_LBRACKET expression T_RBRACKET
     //loop through array and print out correct output associated w/ type
@@ -172,16 +194,18 @@ variable_declaration:
     ;
 
 //---------------------------------------------------------------------
-%type <union_gpl_type> simple_type;
 simple_type:
     T_INT
     {
+	$$ = INT;
     }
     | T_DOUBLE
     {
+	$$ = DOUBLE;
     }
     | T_STRING
     {
+	$$ = STRING;
     }
     ;
 

@@ -18,7 +18,7 @@ class Symbol_table
 	// done as a precaution, they should never be called
 	Symbol_table(const Symbol_table &);
 	const Symbol_table &operator=(const Symbol_table &);
-	map<string, Symbol*> myMap;
+	map<string, Symbol*> sym_table;
 
 };
 

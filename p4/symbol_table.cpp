@@ -10,9 +10,10 @@
 }
 bool Symbol_table::insert(Symbol *sym)
 {
-    if (myMap.find(sym->getId()) == myMap.end())
+    //check to see if id is used yet
+    if (sym_table.find(sym->getId()) == sym_table.end())
     {
-	myMap[sym->getId()] = sym;
+	sym_table[sym->getId()] = sym;
 	return true;
     }
     else
@@ -22,7 +23,19 @@ bool Symbol_table::insert(Symbol *sym)
 }
 void Symbol_table::print(ostream &os)
 {
-    //vector<map<>
-    //for (map<string, 
-    //os << 
+    for (map<string, Symbol*>::iterator it = sym_table.begin();
+         it != sym_table.end(); it++)
+    {
+	switch (it->second->getType())
+	{
+	    case INT:
+	        os << "int " << it->second->getId() << " " << it->second->getInt() << endl; 
+	        break;
+	    case DOUBLE:
+	        os << "double " << it->second->getId() << " " << it->second->getDouble() << endl;
+	        break;
+	    case STRING:
+	        break;
+	}
+    }
 }

@@ -9,13 +9,14 @@ class Symbol
 {
     public:
       Symbol();
-      Symbol(string var_name, Gpl_type gpl_type, int val);
-      Symbol(string var_name, Gpl_type gpl_type, double val);
-      Symbol(string var_name, Gpl_type gpl_type, string val);
+      Symbol(Gpl_type gpl_type, string var_name, int val);
+      Symbol(Gpl_type gpl_type, string var_name, double val);
+      Symbol(Gpl_type gpl_type, string var_name, string val);
       int getInt();
       double getDouble();
       string getId();
       string getString();
+      Gpl_type getType();
 
     private:
       string m_var_name;
