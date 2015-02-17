@@ -179,7 +179,7 @@ variable_declaration:
 	{
 	    new_symbol = new Symbol($1, *$2, "Hello world");
 	}
-	if (!symTable->insert(new_symbol))
+	if (!symTable->insert(new_symbol, *$2, false))
 	{
 	    //Error::error_header();
 	    Error::error(Error::PREVIOUSLY_DECLARED_VARIABLE, *$2, "", "");
@@ -190,6 +190,7 @@ variable_declaration:
     //loop through array and print out correct output associated w/ type
     | simple_type T_ID T_LBRACKET T_INT_CONSTANT T_RBRACKET
     {
+	bool yes = false;
 	Symbol_table *symTable = Symbol_table::instance();
 	Symbol *new_symbol;
 	ostringstream str;
@@ -211,11 +212,13 @@ variable_declaration:
 	        str << *$2 << "[" << i << "]";
 	        new_symbol = new Symbol($1, str.str(), "Hello world");
 	    }
-	    if (!symTable->insert(new_symbol))
+	    
+	    if (!symTable->insert(new_symbol, *$2, yes))
 	    {
-               // error_header();
 	        Error::error(Error::PREVIOUSLY_DECLARED_VARIABLE, *$2, "", "");
 	    }
+	    yes = true;
+	    //clear ostringstream str so it won't add on to the string
 	    str.clear();
 	    str.str(string());
         }

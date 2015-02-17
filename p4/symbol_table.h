@@ -8,7 +8,7 @@ class Symbol_table
 {
     public:
 	static Symbol_table *instance();
-        bool insert(Symbol* );
+        bool insert(Symbol*, string actual_name, bool yes);
 	void print(ostream &os);
 
     private:
