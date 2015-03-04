@@ -4,15 +4,17 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <cmath>
+#include <cstdlib>
 #include "parser.h"
-#include "variable.h"
 #include "gpl_type.h"
+#include "variable.h"
+//class Variable;
 using namespace std;
 
 class Expression
 {
     public:
-        //class Variable;
         Expression(int, Expression *, Expression *);
         Expression(double, Expression *, Expression *);
         Expression(string, Expression *, Expression *);
