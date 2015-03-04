@@ -2,6 +2,7 @@
 #define SYMBOL_TABLE_H
 
 #include "symbol.h"
+#include "parser.h"
 #include <map>
 
 class Symbol_table
@@ -10,6 +11,7 @@ class Symbol_table
 	static Symbol_table *instance();
         bool insert(Symbol*, string actual_name, bool yes);
 	void print(ostream &os);
+        Symbol *lookup(string name);
 
     private:
         static Symbol_table *m_instance;

@@ -3,6 +3,10 @@
 Symbol::Symbol()
 {
 }
+Symbol::Symbol(string var_name)
+{
+    m_var_name = var_name;
+}
 Symbol::Symbol(Gpl_type gpl_type, string var_name, int val)
 {
     m_var_name = var_name;
