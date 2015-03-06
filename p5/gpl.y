@@ -132,12 +132,12 @@ Symbol_table *symbol_table = Symbol_table::instance();
 %token <union_int> T_INT_CONSTANT    "int constant"
 %token <union_double> T_DOUBLE_CONSTANT "double constant"
 %token <union_string> T_STRING_CONSTANT "string constant"
-%type <union_gpl_type> simple_type;
-%type <union_operator_type> math_operator;
-%type <union_expression> expression;
-%type <union_expression> primary_expression;
-%type <union_expression> optional_initializer;
-%type <union_variable> variable;
+%type <union_gpl_type> simple_type
+%type <union_operator_type> math_operator
+%type <union_expression> expression
+%type <union_expression> primary_expression
+%type <union_expression> optional_initializer
+%type <union_variable> variable
 
 
 // special token that does not match any production
@@ -179,20 +179,20 @@ variable_declaration:
     simple_type  T_ID  optional_initializer
     {
 	Symbol *new_symbol;
+        Expression *init_expr = $3;
 
         if ($1 == INT)
 	{
             int int_value = 0;
             
-            if ($3 != NULL)
+            if (init_expr != NULL)
             {
-                //Error::error(Error::INVALID_TYPE_FOR_INITIAL_VALUE, *$2, "", "");
-                int_value = $3->eval_int();
+                int_value = init_expr->eval_int();
 	        new_symbol = new Symbol($1, *$2, int_value);
                 //else Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, *$2, "", "");
                 //Error::error(Error::INVALID_TYPE_FOR_INITIAL_VALUE, *$2, "", "");
             }
-            else if ($3 == NULL) 
+            else if (init_expr == NULL) 
                 new_symbol = new Symbol($1, *$2, 0);
 	}
 	else if ($1 == DOUBLE)
@@ -202,23 +202,23 @@ variable_declaration:
             Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, *$2, "", "");
             }*/
             double double_value = 0;
-            if ($3 != NULL)
+            if (init_expr != NULL)
             {
-                double_value = $3->eval_double();
+                double_value = init_expr->eval_double();
 	        new_symbol = new Symbol($1, *$2, double_value);
             }
-            else if ($3 == NULL)
+            else if (init_expr == NULL)
                 new_symbol = new Symbol($1, *$2, 0);
 	}
 	else if ($1 == STRING)
 	{
             string string_value = "";
-            if ($3 != NULL)
+            if (init_expr != NULL)
             {
-                string_value = $3->eval_string();
+                string_value = init_expr->eval_string();
 	        new_symbol = new Symbol($1, *$2, string_value);
             }
-            else if ($3 == NULL)
+            else if (init_expr == NULL)
                 new_symbol = new Symbol($1, *$2, "");
                 //else Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, *$2, "", "");
             
@@ -231,6 +231,7 @@ variable_declaration:
     }
     | simple_type  T_ID  T_LBRACKET expression T_RBRACKET
     {
+        Expression *init_expr = $4;
 	bool yes = false;
 	Symbol *new_symbol;
 	ostringstream str;
@@ -245,10 +246,10 @@ variable_declaration:
 	    str.str(string());
         }*/
         //need to check array size is valid, ex: double, string
-        if ($4->get_type() != 1)
+        if (init_expr->get_type() != 1)
         {
             
-            Error::error(Error::INVALID_ARRAY_SIZE, *$2, $4->eval_string(), "");
+            Error::error(Error::INVALID_ARRAY_SIZE, *$2, init_expr->eval_string(), "");
         }
         
 
@@ -483,7 +484,7 @@ variable:
         Symbol *sym = symbol_table->lookup(*$1);
         if (sym != NULL)
         {
-            $$ = new Variable(*$1, sym->getType());
+            $$ = new Variable(*$1, sym->getType(), sym);
         }
         else Error::error(Error::UNDECLARED_VARIABLE, *$1, "", "");
     }
@@ -497,7 +498,7 @@ variable:
                 Error::error(Error::INVALID_ARRAY_SIZE, *$1, "", "");
             }
             else
-                $$ = new Variable(*$1, sym->getType(), $3);
+                $$ = new Variable(*$1, sym->getType(), sym, $3);
         }
         else Error::error(Error::UNDECLARED_VARIABLE, *$1, "", "");
     }
@@ -522,7 +523,7 @@ expression:
             c = a|b;
             if (c != 3)
             {
-                $$ = new Expression(OR, $1, $3);
+                $$ = new Expression(OR, LOGICAL_OP, $1, $3);
             }
             else Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, 
                               $3->eval_string(), "", "");
@@ -538,7 +539,7 @@ expression:
             c = a|b;
             if (c != 3)
             {
-                $$ = new Expression(AND, $1, $3);
+                $$ = new Expression(AND, LOGICAL_OP, $1, $3);
             }
             else Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, 
                               $3->eval_string(), "", "");
@@ -554,7 +555,7 @@ expression:
             c = a|b;
             if (c != 3)
             {
-                $$ = new Expression(LESS_THAN_EQUAL, $1, $3);
+                $$ = new Expression(LESS_THAN_EQUAL, LOGICAL_OP, $1, $3);
             }
             else Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, 
                               $3->eval_string(), "", "");
@@ -570,7 +571,7 @@ expression:
             c = a|b;
             if (c != 3)
             {
-                $$ = new Expression(GREATER_THAN_EQUAL, $1, $3);
+                $$ = new Expression(GREATER_THAN_EQUAL, LOGICAL_OP, $1, $3);
             }
             else Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, 
                               $3->eval_string(), "", "");
@@ -586,7 +587,7 @@ expression:
             c = a|b;
             if (c != 3)
             {
-                $$ = new Expression(LESS_THAN, $1, $3);
+                $$ = new Expression(LESS_THAN, LOGICAL_OP, $1, $3);
             }
             else Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, 
                               $3->eval_string(), "", "");
@@ -602,7 +603,7 @@ expression:
             c = a|b;
             if (c != 3)
             {
-                $$ = new Expression(GREATER_THAN, $1, $3);
+                $$ = new Expression(GREATER_THAN, LOGICAL_OP, $1, $3);
             }
             else Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, 
                               $3->eval_string(), "", "");
@@ -618,7 +619,7 @@ expression:
             c = a|b;
             if (c != 3)
             {
-                $$ = new Expression(EQUAL, $1, $3);
+                $$ = new Expression(EQUAL, LOGICAL_OP, $1, $3);
             }
             else Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, 
                               $3->eval_string(), "", "");
@@ -634,7 +635,7 @@ expression:
             c = a|b;
             if (c != 3)
             {
-                $$ = new Expression(NOT_EQUAL, $1, $3);
+                $$ = new Expression(NOT_EQUAL, LOGICAL_OP, $1, $3);
             }
             else Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, 
                               $3->eval_string(), "", "");
@@ -652,7 +653,7 @@ expression:
             //as long as bitwise calculation does not equal 3 (int + double)
             if (c != 3)
             {
-                $$ = new Expression(PLUS, $1, $3);
+                $$ = new Expression(PLUS, BINARY_OP, $1, $3);
             }
             else Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, 
                               $3->eval_string(), "", "");
@@ -668,7 +669,7 @@ expression:
             c = a|b;
             if (c != 3 || c != 5 || c != 6)
             {
-               $$ = new Expression(MINUS, $1, $3);
+               $$ = new Expression(MINUS, BINARY_OP, $1, $3);
             }
             else Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, 
                               $3->eval_string(), "", "");
@@ -684,7 +685,7 @@ expression:
             c = a|b;
             if (c != 4 || c != 6)
             {
-                $$ = new Expression(MULTIPLY, $1, $3);
+                $$ = new Expression(MULTIPLY, BINARY_OP, $1, $3);
             }
             else Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, 
                               $3->eval_string(), "", "");
@@ -706,10 +707,21 @@ expression:
                     $$ = new Expression(DIVIDE, $1, 0);
                 }
                 else*/
-                    $$ = new Expression(DIVIDE, $1, $3);
+                    $$ = new Expression(DIVIDE, BINARY_OP, $1, $3);
             }
-            else Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, 
-                              $3->eval_string(), "", "");
+            else
+            {
+                if (a == 2)
+                {
+                    Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, 
+                                 $3->eval_string(), "", "");
+                }
+                else// if (b == 2 || b == 4)
+                {
+                    Error::error(Error::INVALID_LEFT_OPERAND_TYPE, 
+                                 $3->eval_string(), "", "");
+                }
+            }
         }
     }
     | expression T_MOD expression 
@@ -722,10 +734,10 @@ expression:
             c = a|b;
             if ( c == 1)
             {
-                $$ = new Expression(MOD, $1, $3);
+                $$ = new Expression(MOD, BINARY_OP, $1, $3);
             }
             else Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, 
-                          operator_to_string(MOD), "", "");
+                          "mod", "", "");
         }
     }
     | T_MINUS  expression %prec UNARY_OPS
@@ -733,7 +745,7 @@ expression:
         int a = $2->get_type();
         if ($2 && a != 4)
         {
-            $$ = new Expression(MINUS, $2);
+            $$ = new Expression(MINUS, UNARY_OP, $2);
         }
         else 
             Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, 
@@ -744,7 +756,7 @@ expression:
         int a = $2->get_type();
         if ($2 && a != 4)
         {
-            $$ = new Expression(NOT, $2);
+            $$ = new Expression(NOT, UNARY_OP, $2);
         } 
         else 
             Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, 
@@ -752,7 +764,7 @@ expression:
     }
     | math_operator T_LPAREN expression T_RPAREN
     {
-        $$ = new Expression($1, $3);
+        $$ = new Expression($1, MATH_OP, $3);
     }
     | variable geometric_operator variable
     ;
@@ -765,27 +777,27 @@ primary_expression:
     }
     | variable
     {
-        $$ = new Expression($1);
+        $$ = new Expression($1, VARIABLE);
     }
     | T_INT_CONSTANT
     {    
-        $$ = new Expression($1, NULL, NULL);
+        $$ = new Expression($1, INT_CONST);
     }
     | T_TRUE
     {
-        $$ = new Expression(1,  NULL, NULL);
+        $$ = new Expression(1, TRUE);
     }
     | T_FALSE
     {
-        $$ = new Expression(0, NULL, NULL);
+        $$ = new Expression(0, FALSE);
     }
     | T_DOUBLE_CONSTANT
     {
-        $$ = new Expression($1, NULL, NULL);
+        $$ = new Expression($1, DOUBLE_CONST);
     }
     | T_STRING_CONSTANT
     {
-        $$ = new Expression(*$1, NULL, NULL);
+        $$ = new Expression(*$1, STRING_CONST);
     }
     ;
 
