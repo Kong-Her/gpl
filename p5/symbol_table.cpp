@@ -58,10 +58,5 @@ Symbol *Symbol_table::lookup(string name)
             tmp = it->second;
         }
     }
-    if (!tmp)
-    {
-        return NULL;
-    }
-    else 
-        return tmp;
+    return tmp;
 }

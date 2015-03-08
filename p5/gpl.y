@@ -148,8 +148,8 @@ Symbol_table *symbol_table = Symbol_table::instance();
 %nonassoc UNARY_OPS
 %nonassoc IF_NO_ELSE
 %left T_ELSE
-%left T_OR 
-%left T_AND  
+%left T_OR T_AND 
+//%left T_AND  
 %left T_EQUAL T_NOT_EQUAL T_GREATER T_GREATER_EQUAL T_LESS T_LESS_EQUAL
 %left T_PLUS T_MINUS
 %left T_ASTERISK T_DIVIDE T_MOD
@@ -187,8 +187,12 @@ variable_declaration:
             
             if (init_expr != NULL)
             {
-                int_value = init_expr->eval_int();
-	        new_symbol = new Symbol($1, *$2, int_value);
+                /*if (init_expr->get_type() != INT)
+                {
+                    Error::error(Error::INVALID_TYPE_FOR_INITIAL_VALUE, *$2, "", "");
+                }*/
+                    int_value = init_expr->eval_int();
+	            new_symbol = new Symbol($1, *$2, int_value);
                 //else Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, *$2, "", "");
                 //Error::error(Error::INVALID_TYPE_FOR_INITIAL_VALUE, *$2, "", "");
             }
@@ -235,6 +239,7 @@ variable_declaration:
 	bool yes = false;
 	Symbol *new_symbol;
 	ostringstream str;
+        int int_value;
 
         /*if ($4->get_type() == 2)
         {
@@ -245,15 +250,24 @@ variable_declaration:
 	    str.clear();
 	    str.str(string());
         }*/
+
+        if (init_expr != NULL)
+        {
+            int_value = init_expr->eval_int();
+            if (int_value <= 0)
+            {
+                Error::error(Error::INVALID_TYPE_FOR_INITIAL_VALUE, "", "", "");
+            }
+
+        }
         //need to check array size is valid, ex: double, string
         if (init_expr->get_type() != 1)
         {
-            
             Error::error(Error::INVALID_ARRAY_SIZE, *$2, init_expr->eval_string(), "");
         }
         
 
-        /*for (int i = 0; i < $4->eval_int(); i++)
+        for (int i = 0; i < $4->eval_int(); i++)
         {
             if ($1 == INT)
             {
@@ -267,7 +281,7 @@ variable_declaration:
             {
                 new_symbol = new Symbol($1, *$2, i);
             }
-            if (symbol_table->insert(new_symbol, *$2, yes))
+            if (!symbol_table->insert(new_symbol, *$2, yes))
             {
                 Error::error(Error::PREVIOUSLY_DECLARED_VARIABLE, *$2, "", "");
             }
@@ -275,7 +289,7 @@ variable_declaration:
 	    //clear ostringstream str so it won't add on to the string
 	    str.clear();
 	    str.str(string());
-        }*/
+        }
     }
     ;
 

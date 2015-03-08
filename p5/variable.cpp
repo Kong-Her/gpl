@@ -23,25 +23,11 @@ int Variable::get_int_value()
 }
 double Variable::get_double_value()
 {
-    Symbol_table *symbol_table = Symbol_table::instance();
-    Symbol *sym = symbol_table->lookup(m_var_name);
-    //error if not found
-    if (sym == NULL)
-    {
-        return 0;
-    }
-    return sym->getDouble();
+    return m_sym->getDouble();
 }
 string Variable::get_string_value()
 {
-    Symbol_table *symbol_table = Symbol_table::instance();
-    Symbol *sym = symbol_table->lookup(m_var_name);
-    //error if not found
-    if (sym == NULL)
-    {
-        return "";
-    }
-    return sym->getString();
+    return m_sym->getString();
 }
 Gpl_type Variable::get_var_type()
 {

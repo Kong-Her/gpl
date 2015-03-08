@@ -5,9 +5,8 @@
 #include <sstream>
 #include <string>
 #include <cmath>
-#include <cstdlib>
 #include "parser.h"
-#include "gpl_type.h"
+//#include "gpl_type.h"
 class Variable;
 using namespace std;
 
