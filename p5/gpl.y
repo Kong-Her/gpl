@@ -148,7 +148,8 @@ Symbol_table *symbol_table = Symbol_table::instance();
 %nonassoc UNARY_OPS
 %nonassoc IF_NO_ELSE
 %left T_ELSE
-%left T_OR T_AND 
+%left T_OR 
+%left T_AND 
 //%left T_AND  
 %left T_EQUAL T_NOT_EQUAL T_GREATER T_GREATER_EQUAL T_LESS T_LESS_EQUAL
 %left T_PLUS T_MINUS
@@ -180,21 +181,27 @@ variable_declaration:
     {
 	Symbol *new_symbol;
         Expression *init_expr = $3;
+        int int_value = 0;
+        double double_value = 0;
 
         if ($1 == INT)
 	{
-            int int_value = 0;
-            
+            int_value = init_expr->eval_int();
+            double_value = init_expr->eval_double();
+                
             if (init_expr != NULL)
             {
-                /*if (init_expr->get_type() != INT)
+                //if (init_expr->get_type() == INT)
+                /*if (double_value)
                 {
                     Error::error(Error::INVALID_TYPE_FOR_INITIAL_VALUE, *$2, "", "");
-                }*/
+                }
+                else
+                {*/
                     int_value = init_expr->eval_int();
 	            new_symbol = new Symbol($1, *$2, int_value);
-                //else Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, *$2, "", "");
-                //Error::error(Error::INVALID_TYPE_FOR_INITIAL_VALUE, *$2, "", "");
+                    //else Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, *$2, "", "");
+                //}
             }
             else if (init_expr == NULL) 
                 new_symbol = new Symbol($1, *$2, 0);
@@ -205,7 +212,6 @@ variable_declaration:
             {
             Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, *$2, "", "");
             }*/
-            double double_value = 0;
             if (init_expr != NULL)
             {
                 double_value = init_expr->eval_double();
@@ -239,56 +245,63 @@ variable_declaration:
 	bool yes = false;
 	Symbol *new_symbol;
 	ostringstream str;
-        int int_value;
+        int int_value = 0;
+        double double_value = 0;
+        string string_value = "";
 
-        /*if ($4->get_type() == 2)
-        {
-            double dbl;
-            dbl = $4->eval_double();
-            str << dbl;
-            Error::error(Error::INVALID_ARRAY_SIZE, *$2, str.str(), "");
-	    str.clear();
-	    str.str(string());
-        }*/
-
-        if (init_expr != NULL)
-        {
-            int_value = init_expr->eval_int();
-            if (int_value <= 0)
-            {
-                Error::error(Error::INVALID_TYPE_FOR_INITIAL_VALUE, "", "", "");
-            }
-
-        }
+        int_value = init_expr->eval_int();
+        //double_value = init_expr->eval_double();
+        //string_value = init_expr->eval_string();
+        
         //need to check array size is valid, ex: double, string
-        if (init_expr->get_type() != 1)
+        if (init_expr->get_type() != INT)
         {
             Error::error(Error::INVALID_ARRAY_SIZE, *$2, init_expr->eval_string(), "");
         }
-        
-
-        for (int i = 0; i < $4->eval_int(); i++)
+        if (init_expr == NULL)
         {
-            if ($1 == INT)
+            Error::error(Error::INVALID_ARRAY_SIZE, *$2, init_expr->eval_string(), "");
+            //Error::error(Error::INVALID_TYPE_FOR_INITIAL_VALUE, "", "", "");
+        }
+        else if (int_value == 0)
+        {
+            Error::error(Error::INVALID_ARRAY_SIZE, *$2, "0", ""); 
+        }
+        /*else if (double_value)
+        {
+            Error::error(Error::ARRAY_INDEX_MUST_BE_AN_INTEGER, 
+                         "", "A double expression", "");
+        }
+        else if (string_value != "")
+        {
+            Error::error(Error::ARRAY_INDEX_MUST_BE_AN_INTEGER,
+                         "", "A string expression", "");
+        }*/
+        else 
+        {
+            for (int i = 0; i < int_value; i++)
             {
-                new_symbol = new Symbol($1, *$2, i);
+                if ($1 == INT)
+                {
+                    new_symbol = new Symbol($1, *$2, i);
+                }
+                else if ($1 == DOUBLE)
+                {
+                    new_symbol = new Symbol($1, *$2, i);
+                }
+                else if ($1 == STRING)
+                {
+                    new_symbol = new Symbol($1, *$2, i);
+                }
+                if (!symbol_table->insert(new_symbol, *$2, yes))
+                {
+                    Error::error(Error::PREVIOUSLY_DECLARED_VARIABLE, *$2, "", "");
+                }
+                yes = true;
+	        //clear ostringstream str so it won't add on to the string
+	        str.clear();
+	        str.str(string());
             }
-            else if ($1 == DOUBLE)
-            {
-                new_symbol = new Symbol($1, *$2, i);
-            }
-            else if ($1 == STRING)
-            {
-                new_symbol = new Symbol($1, *$2, i);
-            }
-            if (!symbol_table->insert(new_symbol, *$2, yes))
-            {
-                Error::error(Error::PREVIOUSLY_DECLARED_VARIABLE, *$2, "", "");
-            }
-            yes = true;
-	    //clear ostringstream str so it won't add on to the string
-	    str.clear();
-	    str.str(string());
         }
     }
     ;
@@ -535,7 +548,7 @@ expression:
             a = $1->get_type();
             b = $3->get_type();
             c = a|b;
-            if (c != 3)
+            if (c != 4 || c != 5 || c != 6)
             {
                 $$ = new Expression(OR, LOGICAL_OP, $1, $3);
             }
@@ -551,7 +564,7 @@ expression:
             a = $1->get_type();
             b = $3->get_type();
             c = a|b;
-            if (c != 3)
+            if (c != 4 || c != 5 || c != 6)
             {
                 $$ = new Expression(AND, LOGICAL_OP, $1, $3);
             }
@@ -561,116 +574,116 @@ expression:
     }
     | expression T_LESS_EQUAL expression 
     {
-        int a, b, c;
+        //int a, b, c;
         if ($1 && $3)
         {
-            a = $1->get_type();
+            /*a = $1->get_type();
             b = $3->get_type();
             c = a|b;
             if (c != 3)
-            {
+            {*/
                 $$ = new Expression(LESS_THAN_EQUAL, LOGICAL_OP, $1, $3);
-            }
+           /* }
             else Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, 
-                              $3->eval_string(), "", "");
+                              $3->eval_string(), "", "");*/
         }
     }
     | expression T_GREATER_EQUAL  expression 
     {
-        int a, b, c;
+        //int a, b, c;
         if ($1 && $3)
         {
-            a = $1->get_type();
+            /*a = $1->get_type();
             b = $3->get_type();
             c = a|b;
             if (c != 3)
-            {
+            {*/
                 $$ = new Expression(GREATER_THAN_EQUAL, LOGICAL_OP, $1, $3);
-            }
+            /*}
             else Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, 
-                              $3->eval_string(), "", "");
+                              $3->eval_string(), "", "");*/
         }
     }
     | expression T_LESS expression 
     {
-        int a, b, c;
+        //int a, b, c;
         if ($1 && $3)
         {
-            a = $1->get_type();
+            /*a = $1->get_type();
             b = $3->get_type();
             c = a|b;
             if (c != 3)
-            {
+            {*/
                 $$ = new Expression(LESS_THAN, LOGICAL_OP, $1, $3);
-            }
+            /*}
             else Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, 
-                              $3->eval_string(), "", "");
+                              $3->eval_string(), "", "");*/
         }
     }
     | expression T_GREATER  expression 
     {
-        int a, b, c;
+        //int a, b, c;
         if ($1 && $3)
         {
-            a = $1->get_type();
+            /*a = $1->get_type();
             b = $3->get_type();
             c = a|b;
             if (c != 3)
-            {
+            {*/
                 $$ = new Expression(GREATER_THAN, LOGICAL_OP, $1, $3);
-            }
+            /*}
             else Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, 
-                              $3->eval_string(), "", "");
+                              $3->eval_string(), "", "");*/
         }
     }
     | expression T_EQUAL expression 
     {
-        int a, b, c;
+        //int a, b, c;
         if ($1 && $3)
         {
-            a = $1->get_type();
+            /*a = $1->get_type();
             b = $3->get_type();
             c = a|b;
             if (c != 3)
-            {
+            {*/
                 $$ = new Expression(EQUAL, LOGICAL_OP, $1, $3);
-            }
+            /*}
             else Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, 
-                              $3->eval_string(), "", "");
+                              $3->eval_string(), "", "");*/
         }
     }
     | expression T_NOT_EQUAL expression 
     {
-        int a, b, c;
+        //int a, b, c;
         if ($1 && $3)
         {
-            a = $1->get_type();
+            /*a = $1->get_type();
             b = $3->get_type();
             c = a|b;
             if (c != 3)
-            {
+            {*/
                 $$ = new Expression(NOT_EQUAL, LOGICAL_OP, $1, $3);
-            }
+            /*}
             else Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, 
-                              $3->eval_string(), "", "");
+                              $3->eval_string(), "", "");*/
         }
     }
     | expression T_PLUS expression 
     {
         //check that the type of $1 and $3 are compatible
-        int a, b, c;
+        //int a, b, c;
         if ($1 && $3)
         {
-            a = $1->get_type();
+            /*a = $1->get_type();
             b = $3->get_type();
             c = a|b;
             //as long as bitwise calculation does not equal 3 (int + double)
             if (c != 3)
-            {
+            {*/
                 $$ = new Expression(PLUS, BINARY_OP, $1, $3);
-            }
+            /*}
             else Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, 
-                              $3->eval_string(), "", "");
+                              $3->eval_string(), "", "");*/
         }
     }
     | expression T_MINUS expression 
@@ -681,12 +694,20 @@ expression:
             a = $1->get_type();
             b = $3->get_type();
             c = a|b;
-            if (c != 3 || c != 5 || c != 6)
+            if (c != STRING || c != (INT|STRING) || c != (DOUBLE|STRING) )
             {
                $$ = new Expression(MINUS, BINARY_OP, $1, $3);
             }
-            else Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, 
-                              $3->eval_string(), "", "");
+            else if (b == STRING)
+            {
+                Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, 
+                             operator_to_string(MINUS), "", "");
+            }
+            else 
+            {
+                Error::error(Error::INVALID_LEFT_OPERAND_TYPE, 
+                             operator_to_string(MINUS), "", "");
+            }
         }
     }
     | expression T_ASTERISK expression 
@@ -697,7 +718,7 @@ expression:
             a = $1->get_type();
             b = $3->get_type();
             c = a|b;
-            if (c != 4 || c != 6)
+            if (c != STRING || c != (INT|STRING) || c != (DOUBLE|STRING))
             {
                 $$ = new Expression(MULTIPLY, BINARY_OP, $1, $3);
             }
