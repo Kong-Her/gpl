@@ -2168,11 +2168,70 @@ string Expression::eval_string()
             if (m_type == INT)
             {
                 int value;
-                value = eval_int();
-                convert << value;
+                if (m_left->m_var || m_right->m_var)
+                {
+                    if (m_left->m_var)
+                    {
+                        if (m_right->m_var)
+                        {
+                            value = m_left->m_var->get_int_value() +
+                                    m_right->m_var->get_int_value();
+                            convert << value;
+                        }
+                        else
+                        {
+                            value = m_left->m_var->get_int_value() + 
+                                    m_right->eval_int();
+                            convert << value;
+                        }
+
+                    }
+                    else
+                    {
+                        value = m_left->eval_int() + 
+                                m_right->m_var->get_int_value();
+                        convert << value;
+                    }
+                }
+                else
+                {
+                    value = eval_int();
+                    convert << value;
+                }
             }
             else if (m_type == DOUBLE)
             {
+                double value;
+                if (m_left->m_var || m_right->m_var)
+                {
+                    if (m_left->m_var)
+                    {
+                        if (m_right->m_var)
+                        {
+                            value = m_left->m_var->get_double_value() +
+                                    m_right->m_var->get_double_value();
+                            convert << value;
+                        }
+                        else
+                        {
+                            value = m_left->m_var->get_double_value() + 
+                                    m_right->eval_double();
+                            convert << value;
+                        }
+
+                    }
+                    else
+                    {
+                        value = m_left->eval_double() + 
+                                m_right->m_var->get_double_value();
+                        convert << value;
+                    }
+                }
+                else
+                {
+                    value = eval_double();
+                    convert << value;
+                }
                 value = eval_double();
                 convert << value;
             }
@@ -2183,6 +2242,152 @@ string Expression::eval_string()
                 b = m_right->get_type();
                 c = a|b;
 
+                if (m_left->m_var || m_right->m_var)
+                {
+                    int left, right, both;
+                    if (m_left->m_var)
+                    {
+                        left = m_left->m_var->get_var_type();
+                        if (m_right->m_var)
+                        {
+                            right = m_right->m_var->get_var_type();
+                            both = (left|right);
+                            if (both == (INT|STRING))
+                            {
+                                int value;
+                                string s;
+
+                                if (left == INT)
+                                {
+                                    value = m_left->m_var->get_int_value();
+                                    s = m_right->m_var->get_string_value();
+                                    convert << value << s;
+                                }
+                                else
+                                {
+                                    s = m_left->m_var->get_string_value();
+                                    value = m_right->m_var->get_int_value();
+                                    convert << s << value;
+                                }
+                            }
+                            else if (both == (DOUBLE|STRING))
+                            {
+                                double value;
+                                string s;
+
+                                if (left == DOUBLE)
+                                {
+                                    value = m_left->m_var->get_double_value();
+                                    s = m_right->m_var->get_string_value();
+                                    convert << value << s;
+                                }
+                                else
+                                {
+                                    s = m_left->m_var->get_string_value();
+                                    value = m_right->m_var->get_double_value();
+                                    convert << s << value;
+                                }
+                            }
+                            else
+                            {
+                                return m_left->m_var->get_string_value() +
+                                       m_right->m_var->get_string_value();
+                            }
+                        }
+                        else
+                        {
+                            //m_right is a const
+                            right = m_right->get_type();
+                            both = (left|right);
+                            
+                            if (both == (INT|STRING))
+                            {
+                                int value;
+                                string s;
+
+                                if (left == INT)
+                                {
+                                    value = m_left->m_var->get_int_value();
+                                    s = m_right->eval_string();
+                                    convert << value << s;
+                                }
+                                else 
+                                {
+                                    s = m_left->m_var->get_string_value();
+                                    value = m_right->eval_int();
+                                    convert << s << value;
+                                }
+                            }
+                            else if (both == (DOUBLE|STRING))
+                            {
+                                double value;
+                                string s;
+
+                                if (left == DOUBLE)
+                                {
+                                    value = m_left->m_var->get_double_value();
+                                    s = m_right->eval_string();
+                                    convert << value << s;
+                                }
+                                else
+                                {
+                                    s = m_left->m_var->get_string_value();
+                                    value = m_right->eval_double();
+                                    convert << s << value;
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        //m_right is a variable
+                        left = m_left->get_type();
+                        right = m_right->m_var->get_var_type();
+                        both = (left|right);
+
+                        if (both == (INT|STRING))
+                        {
+                            int value;
+                            string s;
+
+                            if (left == INT)
+                            {
+                                value = m_left->eval_int();
+                                s = m_right->m_var->get_string_value();
+                                convert << value << s;
+                            }
+                            else
+                            {
+                                s = m_left->eval_string();
+                                value = m_right->m_var->get_int_value();
+                                convert << s << value;
+                            }
+                        }
+                        else if (both == (DOUBLE|STRING))
+                        {
+                            double value;
+                            string s;
+
+                            if (left == DOUBLE)
+                            {
+                                value = m_left->eval_double();
+                                s = m_right->m_var->get_string_value();
+                                convert << value << s;
+                            }
+                            else
+                            {
+                                s = m_left->eval_string();
+                                value = m_right->m_var->get_double_value();
+                                convert << s << value;
+                            }
+                        }
+                        else
+                        {
+                            return m_left->eval_string() + 
+                                   m_right->m_var->get_string_value();
+                        }
+                    }
+                }
                 if (c == (INT|STRING))
                 {
                     int value;

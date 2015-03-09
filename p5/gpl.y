@@ -150,7 +150,6 @@ Symbol_table *symbol_table = Symbol_table::instance();
 %left T_ELSE
 %left T_OR 
 %left T_AND 
-//%left T_AND  
 %left T_EQUAL T_NOT_EQUAL T_GREATER T_GREATER_EQUAL T_LESS T_LESS_EQUAL
 %left T_PLUS T_MINUS
 %left T_ASTERISK T_DIVIDE T_MOD
@@ -509,18 +508,34 @@ variable:
     T_ID
     {
         Symbol *sym = symbol_table->lookup(*$1);
-        if (sym != NULL)
+        if (sym == NULL)
+        {
+            Error::error(Error::UNDECLARED_VARIABLE, *$1, "", "");
+        }
+        else
         {
             $$ = new Variable(*$1, sym->getType(), sym);
         }
-        else Error::error(Error::UNDECLARED_VARIABLE, *$1, "", "");
     }
     | T_ID T_LBRACKET expression T_RBRACKET
     {
+        Expression *init_expr = $3;
         Symbol *sym = symbol_table->lookup(*$1);
+      
         if (sym != NULL)
         {
-            if ($3->get_type() == 3)
+            int value = init_expr->eval_int();
+            if (init_expr->get_type() == STRING)
+            {
+                Error::error(Error::ARRAY_INDEX_MUST_BE_AN_INTEGER,
+                             *$1, "A string expression", ""); 
+            }
+            if (init_expr->get_type() == DOUBLE)
+            {
+                Error::error(Error::ARRAY_INDEX_MUST_BE_AN_INTEGER,
+                             *$1, "A double expression", ""); 
+            }
+            if (value <= 0)
             {
                 Error::error(Error::INVALID_ARRAY_SIZE, *$1, "", "");
             }
@@ -548,12 +563,20 @@ expression:
             a = $1->get_type();
             b = $3->get_type();
             c = a|b;
-            if (c != 4 || c != 5 || c != 6)
+            if (a == STRING)
+            {
+                Error::error(Error::INVALID_LEFT_OPERAND_TYPE, 
+                              operator_to_string(OR), "", "");
+            }
+            else if (b == STRING)
+            {
+                Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, 
+                             operator_to_string(OR), "", "");
+            }
+            else
             {
                 $$ = new Expression(OR, LOGICAL_OP, $1, $3);
             }
-            else Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, 
-                              $3->eval_string(), "", "");
         }
     }
     | expression T_AND expression 
@@ -564,12 +587,21 @@ expression:
             a = $1->get_type();
             b = $3->get_type();
             c = a|b;
-            if (c != 4 || c != 5 || c != 6)
+
+            if (a == STRING)
+            {
+                Error::error(Error::INVALID_LEFT_OPERAND_TYPE, 
+                             operator_to_string(AND), "", "");
+            }
+            else if (b == STRING)
+            {
+                Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, 
+                             operator_to_string(AND), "", "");
+            }
+            else
             {
                 $$ = new Expression(AND, LOGICAL_OP, $1, $3);
             }
-            else Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, 
-                              $3->eval_string(), "", "");
         }
     }
     | expression T_LESS_EQUAL expression 
@@ -694,19 +726,19 @@ expression:
             a = $1->get_type();
             b = $3->get_type();
             c = a|b;
-            if (c != STRING || c != (INT|STRING) || c != (DOUBLE|STRING) )
+            if (a == STRING) 
             {
-               $$ = new Expression(MINUS, BINARY_OP, $1, $3);
+                Error::error(Error::INVALID_LEFT_OPERAND_TYPE, 
+                             operator_to_string(MINUS), "", "");
             }
             else if (b == STRING)
             {
                 Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, 
                              operator_to_string(MINUS), "", "");
             }
-            else 
+            else
             {
-                Error::error(Error::INVALID_LEFT_OPERAND_TYPE, 
-                             operator_to_string(MINUS), "", "");
+               $$ = new Expression(MINUS, BINARY_OP, $1, $3);
             }
         }
     }
@@ -718,12 +750,21 @@ expression:
             a = $1->get_type();
             b = $3->get_type();
             c = a|b;
-            if (c != STRING || c != (INT|STRING) || c != (DOUBLE|STRING))
+
+            if (a == STRING) 
+            {
+                Error::error(Error::INVALID_LEFT_OPERAND_TYPE, 
+                             operator_to_string(MULTIPLY), "", "");
+            }
+            else if (b == STRING)
+            {
+                Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, 
+                             operator_to_string(MULTIPLY), "", "");
+            }
+            else
             {
                 $$ = new Expression(MULTIPLY, BINARY_OP, $1, $3);
             }
-            else Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, 
-                              $3->eval_string(), "", "");
         }
     }
     | expression T_DIVIDE expression 
@@ -734,28 +775,27 @@ expression:
             a = $1->get_type();
             b = $3->get_type();
             c = a|b;
-            if (c != 4 || c != 5 || c != 6)
+            if (a == STRING) 
             {
-                /*if ($3->eval_double() == 0)
-                {
-                    Error::error(Error::DIVIDE_BY_ZERO_AT_PARSE_TIME, "", "", "");
-                    $$ = new Expression(DIVIDE, $1, 0);
-                }
-                else*/
-                    $$ = new Expression(DIVIDE, BINARY_OP, $1, $3);
+                Error::error(Error::INVALID_LEFT_OPERAND_TYPE, 
+                             operator_to_string(MULTIPLY), "", "");
             }
+            else if (b == STRING)
+            {
+                Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, 
+                             operator_to_string(MULTIPLY), "", "");
+            }
+            /*else if ($3->eval_int() == 0)
+            {
+                Error::error(Error::DIVIDE_BY_ZERO_AT_PARSE_TIME, "", "", "");
+            }
+            else if ($3->eval_double() == 0)
+            {
+                Error::error(Error::DIVIDE_BY_ZERO_AT_PARSE_TIME, "", "", "");
+            }*/
             else
             {
-                if (a == 2)
-                {
-                    Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, 
-                                 $3->eval_string(), "", "");
-                }
-                else// if (b == 2 || b == 4)
-                {
-                    Error::error(Error::INVALID_LEFT_OPERAND_TYPE, 
-                                 $3->eval_string(), "", "");
-                }
+                $$ = new Expression(DIVIDE, BINARY_OP, $1, $3);
             }
         }
     }
@@ -767,12 +807,20 @@ expression:
             a = $1->get_type();
             b = $3->get_type();
             c = a|b;
-            if ( c == 1)
+            if (a != INT)
+            {
+                Error::error(Error::INVALID_LEFT_OPERAND_TYPE, 
+                             "mod", "", "");
+            }
+            else if (b != INT)
+            {
+                Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, 
+                             "mod", "", "");
+            }
+            else
             {
                 $$ = new Expression(MOD, BINARY_OP, $1, $3);
             }
-            else Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, 
-                          "mod", "", "");
         }
     }
     | T_MINUS  expression %prec UNARY_OPS
