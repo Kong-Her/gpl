@@ -192,23 +192,48 @@ int Expression::eval_int()
     {
         if (m_op == PLUS)
         {
-            return m_left->eval_int() + m_right->eval_int();
+            if (m_type == INT)
+            {
+                return m_left->eval_int() + m_right->eval_int();
+            }
+            else
+                return eval_double();
         }
         if (m_op == MINUS)
         {
-            return m_left->eval_int() - m_right->eval_int();
+            if (m_type == INT)
+            {
+                return m_left->eval_int() + m_right->eval_int();
+            }
+            else
+                return eval_double();
         }
         if (m_op == MULTIPLY)
         {
-            return m_left->eval_int() * m_right->eval_int();
+            if (m_type == INT)
+            {
+                return m_left->eval_int() * m_right->eval_int();
+            }
+            else 
+                return eval_double();
         }
         if (m_op == DIVIDE)
         {
-            return m_left->eval_int() / m_right->eval_int();
+            if (m_type == INT)
+            {
+                return m_left->eval_int() / m_right->eval_int();
+            }
+            else 
+                return eval_double();
         }
         if (m_op == MOD)
         {
-            return m_left->eval_int() % m_right->eval_int();
+            if (m_type == INT)
+            {
+                return m_left->eval_int() % m_right->eval_int();
+            }
+            else 
+                return eval_double();
         }
     }
     if (m_kind == LOGICAL_OP)
@@ -225,264 +250,11 @@ int Expression::eval_int()
             }
             else 
             {
-                //need string holder to store string so we can compare
-                string str = "";
-                string tmp, s;
-                ostringstream convert;
-                int lhs = 0, rhs = 0, both;
-                if (m_left->m_var || m_right->m_var)
-                {
-                    if (m_left->m_var)
-                    {
-                        lhs = m_left->m_var->get_var_type();
-                        if (m_right->m_var)
-                        {
-                            rhs = m_right->m_var->get_var_type();
-                            both = (lhs|rhs);
-                            if (both == STRING)
-                            {
-                                string l, r;
-                                l = m_left->m_var->get_string_value();
-                                r = m_right->m_var->get_string_value();
-                                return l < r;
-                            }
-                            else if (both == (INT|STRING))
-                            {
-                                int value;
+                string left_str, right_str;
 
-                                if (lhs == INT)
-                                {
-                                    value = m_left->m_var->get_int_value();
-                                    s = m_right->m_var->get_string_value();
-                                    convert << value;
-                                    str = convert.str();
-                                    tmp = str;
-                                    convert.clear();
-                                    convert.str(string());
-                                    return tmp < s;
-                                }
-                                else
-                                {
-                                    s = m_left->m_var->get_string_value();
-                                    value = m_right->m_var->get_int_value();
-                                    convert << value;
-                                    str = convert.str();
-                                    tmp = str;
-                                    convert.clear();
-                                    convert.str(string());
-                                    return s < tmp;
-                                }
-                            }
-                            else
-                            {
-                                double value;
-                                
-                                if (lhs == DOUBLE)
-                                {
-                                    value = m_left->m_var->get_double_value();
-                                    s = m_right->m_var->get_string_value();
-                                    convert << value;
-                                    str = convert.str();
-                                    tmp = str;
-                                    convert.clear();
-                                    convert.str(string());
-                                    return tmp < s;
-                                }
-                                else
-                                {
-                                    s = m_left->m_var->get_string_value();
-                                    value = m_right->m_var->get_double_value();
-                                    convert << value;
-                                    str = convert.str();
-                                    tmp = str;
-                                    convert.clear();
-                                    convert.str(string());
-                                    return s < tmp;
-                                }
-                            }
-
-                        }
-                        else
-                        {
-                            //m_right is not a variable
-                            lhs = m_left->m_var->get_var_type();
-                            rhs = m_right->get_type();
-                            both = (lhs|rhs);
-
-                            if (both == STRING)
-                            {
-                                string l, r;
-                                l = m_left->m_var->get_string_value();
-                                r = m_right->eval_string();
-                                return l < r;
-                            }
-                            else if (both == (INT|STRING))
-                            {
-                                int value;
-
-                                if (lhs == INT)
-                                {
-                                    value = m_left->m_var->get_int_value();
-                                    s = m_right->eval_string();
-                                    convert << value;
-                                    str = convert.str();
-                                    tmp = str;
-                                    convert.clear();
-                                    convert.str(string());
-                                    return tmp < s; 
-                                }
-                                else 
-                                {
-                                    s = m_left->m_var->get_string_value();
-                                    value = m_left->eval_int();
-                                    convert << value;
-                                    str = convert.str();
-                                    tmp = str;
-                                    convert.clear();
-                                    convert.str(string());
-                                    return s < tmp;
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        //m_left is not a variable
-                        lhs = m_left->get_type();
-                        rhs = m_right->m_var->get_var_type();
-                        both = (lhs|rhs);
-
-                        if (both == STRING)
-                        {
-                            string l, r;
-                            l = m_left->eval_string();
-                            r = m_right->m_var->get_string_value();
-                            return l < r;
-                        }
-                        else if (both == (INT|STRING))
-                        {
-                            int value;
-
-                            if (lhs == INT)
-                            {
-                                value = m_left->eval_int();
-                                s = m_right->m_var->get_string_value();
-                                convert << value;
-                                str = convert.str();
-                                tmp = str;
-                                convert.clear();
-                                convert.str(string());
-                                return tmp < s;
-                            }
-                            else
-                            {
-                                s = m_left->eval_string();
-                                value = m_right->m_var->get_int_value();
-                                convert << value;
-                                str = convert.str();
-                                tmp = str;
-                                convert.clear();
-                                convert.str(string());
-                                return s < tmp;
-                            }
-                        }
-                        else
-                        {
-                            double value;
-
-                            if (lhs == DOUBLE)
-                            {
-                                value = m_left->eval_double();
-                                s = m_right->m_var->get_string_value();
-                                convert << value;
-                                str = convert.str();
-                                tmp = str;
-                                convert.clear();
-                                convert.str(string());
-                                return tmp < s;
-                            }
-                            else
-                            {
-                                s = m_left->eval_string();
-                                value = m_right->m_var->get_double_value();
-                                convert << value;
-                                str = convert.str();
-                                tmp = str;
-                                convert.clear();
-                                convert.str(string());
-                                return s < tmp;
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    lhs = m_left->get_type();
-                    rhs = m_right->get_type();
-                    both = (lhs|rhs);
-                    
-                    if (both == (INT|STRING))
-                    {
-                        int value;
-
-                        if (lhs == INT)
-                        {
-                            value = m_left->eval_int();
-                            s = m_right->eval_string();
-                            convert << value;
-                            str = convert.str();
-                            tmp = str;
-                            convert.clear();
-                            convert.str(string());
-                            return tmp < s;
-                        }
-                        else
-                        {
-                            s = m_left->eval_string();
-                            value = m_right->eval_int();
-                            convert << value;
-                            str = convert.str();
-                            tmp = str;
-                            convert.clear();
-                            convert.str(string());
-                            return tmp < s;
-                        }
-                    }
-                    else if (both == (DOUBLE|STRING))
-                    {
-                        double value;
-                        
-                        if (lhs == DOUBLE)
-                        {
-                            value = m_left->eval_double();
-                            s = m_right->eval_string();
-                            convert << value;
-                            str = convert.str();
-                            tmp = str;
-                            convert.clear();
-                            convert.str(string());
-                            return tmp < s;
-                        }
-                        else
-                        {
-                            s = m_left->eval_string();
-                            value = m_right->eval_double();
-                            convert << value;
-                            str = convert.str();
-                            tmp = str;
-                            convert.clear();
-                            convert.str(string());
-                            return s < tmp;
-                        } 
-                    }
-                    else
-                    {
-                        string l, r;
-                        l = m_left->eval_string();
-                        r = m_right->eval_string();
-                        return l < r;
-                    }
-                }
+                left_str = m_left->eval_string();
+                right_str = m_right->eval_string();
+                return left_str < right_str;
             }
         }
         if (m_op == GREATER_THAN)
@@ -497,263 +269,11 @@ int Expression::eval_int()
             }
             else
             {
-                //need string holder to store string so we can compare
-                string str = "";
-                string tmp, s;
-                ostringstream convert;
-                int lhs = 0, rhs = 0, both;
-                if (m_left->m_var || m_right->m_var)
-                {
-                    if (m_left->m_var)
-                    {
-                        lhs = m_left->m_var->get_var_type();
-                        if (m_right->m_var)
-                        {
-                            rhs = m_right->m_var->get_var_type();
-                            both = (lhs|rhs);
-                            if (both == STRING)
-                            {
-                                string l, r;
-                                l = m_left->m_var->get_string_value();
-                                r = m_right->m_var->get_string_value();
-                                return l > r;
-                            }
-                            else if (both == (INT|STRING))
-                            {
-                                int value;
+                string left_str, right_str;
 
-                                if (lhs == INT)
-                                {
-                                    value = m_left->m_var->get_int_value();
-                                    s = m_right->m_var->get_string_value();
-                                    convert << value;
-                                    str = convert.str();
-                                    tmp = str;
-                                    convert.clear();
-                                    convert.str(string());
-                                    return tmp > s;
-                                }
-                                else
-                                {
-                                    s = m_left->m_var->get_string_value();
-                                    value = m_right->m_var->get_int_value();
-                                    convert << value;
-                                    str = convert.str();
-                                    tmp = str;
-                                    convert.clear();
-                                    convert.str(string());
-                                    return s > tmp;
-                                }
-                            }
-                            else
-                            {
-                                double value;
-                                
-                                if (lhs == DOUBLE)
-                                {
-                                    value = m_left->m_var->get_double_value();
-                                    s = m_right->m_var->get_string_value();
-                                    convert << value;
-                                    str = convert.str();
-                                    tmp = str;
-                                    convert.clear();
-                                    convert.str(string());
-                                    return tmp > s;
-                                }
-                                else
-                                {
-                                    s = m_left->m_var->get_string_value();
-                                    value = m_right->m_var->get_double_value();
-                                    convert << value;
-                                    str = convert.str();
-                                    tmp = str;
-                                    convert.clear();
-                                    convert.str(string());
-                                    return s > tmp;
-                                }
-                            }
-                        }
-                        else
-                        {
-                            //m_right is not a variable
-                            lhs = m_left->m_var->get_var_type();
-                            rhs = m_right->get_type();
-                            both = (lhs|rhs);
-
-                            if (both == STRING)
-                            {
-                                string l, r;
-                                l = m_left->m_var->get_string_value();
-                                r = m_right->eval_string();
-                                return l > r;
-                            }
-                            else if (both == (INT|STRING))
-                            {
-                                int value;
-
-                                if (lhs == INT)
-                                {
-                                    value = m_left->m_var->get_int_value();
-                                    s = m_right->eval_string();
-                                    convert << value;
-                                    str = convert.str();
-                                    tmp = str;
-                                    convert.clear();
-                                    convert.str(string());
-                                    return tmp > s; 
-                                }
-                                else 
-                                {
-                                    s = m_left->m_var->get_string_value();
-                                    value = m_left->eval_int();
-                                    convert << value;
-                                    str = convert.str();
-                                    tmp = str;
-                                    convert.clear();
-                                    convert.str(string());
-                                    return s > tmp;
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        //m_left is not a variable
-                        lhs = m_left->get_type();
-                        rhs = m_right->m_var->get_var_type();
-                        both = (lhs|rhs);
-
-                        if (both == STRING)
-                        {
-                            string l, r;
-                            l = m_left->eval_string();
-                            r = m_right->m_var->get_string_value();
-                            return l > r;
-                        }
-                        else if (both == (INT|STRING))
-                        {
-                            int value;
-
-                            if (lhs == INT)
-                            {
-                                value = m_left->eval_int();
-                                s = m_right->m_var->get_string_value();
-                                convert << value;
-                                str = convert.str();
-                                tmp = str;
-                                convert.clear();
-                                convert.str(string());
-                                return tmp > s;
-                            }
-                            else
-                            {
-                                s = m_left->eval_string();
-                                value = m_right->m_var->get_int_value();
-                                convert << value;
-                                str = convert.str();
-                                tmp = str;
-                                convert.clear();
-                                convert.str(string());
-                                return s > tmp;
-                            }
-                        }
-                        else
-                        {
-                            double value;
-
-                            if (lhs == DOUBLE)
-                            {
-                                value = m_left->eval_double();
-                                s = m_right->m_var->get_string_value();
-                                convert << value;
-                                str = convert.str();
-                                tmp = str;
-                                convert.clear();
-                                convert.str(string());
-                                return tmp > s;
-                            }
-                            else
-                            {
-                                s = m_left->eval_string();
-                                value = m_right->m_var->get_double_value();
-                                convert << value;
-                                str = convert.str();
-                                tmp = str;
-                                convert.clear();
-                                convert.str(string());
-                                return s > tmp;
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    lhs = m_left->get_type();
-                    rhs = m_right->get_type();
-                    both = (lhs|rhs);
-                    
-                    if (both == (INT|STRING))
-                    {
-                        int value;
-
-                        if (lhs == INT)
-                        {
-                            value = m_left->eval_int();
-                            s = m_right->eval_string();
-                            convert << value;
-                            str = convert.str();
-                            tmp = str;
-                            convert.clear();
-                            convert.str(string());
-                            return tmp > s;
-                        }
-                        else
-                        {
-                            s = m_left->eval_string();
-                            value = m_right->eval_int();
-                            convert << value;
-                            str = convert.str();
-                            tmp = str;
-                            convert.clear();
-                            convert.str(string());
-                            return tmp > s;
-                        }
-                    }
-                    else if (both == (DOUBLE|STRING))
-                    {
-                        double value;
-                        
-                        if (lhs == DOUBLE)
-                        {
-                            value = m_left->eval_double();
-                            s = m_right->eval_string();
-                            convert << value;
-                            str = convert.str();
-                            tmp = str;
-                            convert.clear();
-                            convert.str(string());
-                            return tmp > s;
-                        }
-                        else
-                        {
-                            s = m_left->eval_string();
-                            value = m_right->eval_double();
-                            convert << value;
-                            str = convert.str();
-                            tmp = str;
-                            convert.clear();
-                            convert.str(string());
-                            return s > tmp;
-                        } 
-                    }
-                    else
-                    {
-                        string l, r;
-                        l = m_left->eval_string();
-                        r = m_right->eval_string();
-                        return l > r;
-                    }
-                }
+                left_str = m_left->eval_string();
+                right_str = m_right->eval_string();
+                return left_str > right_str;
             }
         }
         if (m_op == LESS_THAN_EQUAL)
@@ -768,264 +288,11 @@ int Expression::eval_int()
             }
             else
             {
-                //need string holder to store string so we can compare
-                string str = "";
-                string tmp, s;
-                ostringstream convert;
-                int lhs = 0, rhs = 0, both;
-                if (m_left->m_var || m_right->m_var)
-                {
-                    if (m_left->m_var)
-                    {
-                        lhs = m_left->m_var->get_var_type();
-                        if (m_right->m_var)
-                        {
-                            rhs = m_right->m_var->get_var_type();
-                            both = (lhs|rhs);
-                            if (both == STRING)
-                            {
-                                string l, r;
-                                l = m_left->m_var->get_string_value();
-                                r = m_right->m_var->get_string_value();
-                                return l <= r;
-                            }
-                            else if (both == (INT|STRING))
-                            {
-                                int value;
+                string left_str, right_str;
 
-                                if (lhs == INT)
-                                {
-                                    value = m_left->m_var->get_int_value();
-                                    s = m_right->m_var->get_string_value();
-                                    convert << value;
-                                    str = convert.str();
-                                    tmp = str;
-                                    convert.clear();
-                                    convert.str(string());
-                                    return tmp <= s;
-                                }
-                                else
-                                {
-                                    s = m_left->m_var->get_string_value();
-                                    value = m_right->m_var->get_int_value();
-                                    convert << value;
-                                    str = convert.str();
-                                    tmp = str;
-                                    convert.clear();
-                                    convert.str(string());
-                                    return s <= tmp;
-                                }
-                            }
-                            else
-                            {
-                                double value;
-                                
-                                if (lhs == DOUBLE)
-                                {
-                                    value = m_left->m_var->get_double_value();
-                                    s = m_right->m_var->get_string_value();
-                                    convert << value;
-                                    str = convert.str();
-                                    tmp = str;
-                                    convert.clear();
-                                    convert.str(string());
-                                    return tmp <= s;
-                                }
-                                else
-                                {
-                                    s = m_left->m_var->get_string_value();
-                                    value = m_right->m_var->get_double_value();
-                                    convert << value;
-                                    str = convert.str();
-                                    tmp = str;
-                                    convert.clear();
-                                    convert.str(string());
-                                    return s <= tmp;
-                                }
-                            }
-
-                        }
-                        else
-                        {
-                            //m_right is not a variable
-                            lhs = m_left->m_var->get_var_type();
-                            rhs = m_right->get_type();
-                            both = (lhs|rhs);
-
-                            if (both == STRING)
-                            {
-                                string l, r;
-                                l = m_left->m_var->get_string_value();
-                                r = m_right->eval_string();
-                                return l <= r;
-                            }
-                            else if (both == (INT|STRING))
-                            {
-                                int value;
-
-                                if (lhs == INT)
-                                {
-                                    value = m_left->m_var->get_int_value();
-                                    s = m_right->eval_string();
-                                    convert << value;
-                                    str = convert.str();
-                                    tmp = str;
-                                    convert.clear();
-                                    convert.str(string());
-                                    return tmp <= s; 
-                                }
-                                else 
-                                {
-                                    s = m_left->m_var->get_string_value();
-                                    value = m_left->eval_int();
-                                    convert << value;
-                                    str = convert.str();
-                                    tmp = str;
-                                    convert.clear();
-                                    convert.str(string());
-                                    return s <= tmp;
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        //m_left is not a variable
-                        lhs = m_left->get_type();
-                        rhs = m_right->m_var->get_var_type();
-                        both = (lhs|rhs);
-
-                        if (both == STRING)
-                        {
-                            string l, r;
-                            l = m_left->eval_string();
-                            r = m_right->m_var->get_string_value();
-                            return l <= r;
-                        }
-                        else if (both == (INT|STRING))
-                        {
-                            int value;
-
-                            if (lhs == INT)
-                            {
-                                value = m_left->eval_int();
-                                s = m_right->m_var->get_string_value();
-                                convert << value;
-                                str = convert.str();
-                                tmp = str;
-                                convert.clear();
-                                convert.str(string());
-                                return tmp <= s;
-                            }
-                            else
-                            {
-                                s = m_left->eval_string();
-                                value = m_right->m_var->get_int_value();
-                                convert << value;
-                                str = convert.str();
-                                tmp = str;
-                                convert.clear();
-                                convert.str(string());
-                                return s <= tmp;
-                            }
-                        }
-                        else
-                        {
-                            double value;
-
-                            if (lhs == DOUBLE)
-                            {
-                                value = m_left->eval_double();
-                                s = m_right->m_var->get_string_value();
-                                convert << value;
-                                str = convert.str();
-                                tmp = str;
-                                convert.clear();
-                                convert.str(string());
-                                return tmp <= s;
-                            }
-                            else
-                            {
-                                s = m_left->eval_string();
-                                value = m_right->m_var->get_double_value();
-                                convert << value;
-                                str = convert.str();
-                                tmp = str;
-                                convert.clear();
-                                convert.str(string());
-                                return s <= tmp;
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    lhs = m_left->get_type();
-                    rhs = m_right->get_type();
-                    both = (lhs|rhs);
-                    
-                    if (both == (INT|STRING))
-                    {
-                        int value;
-
-                        if (lhs == INT)
-                        {
-                            value = m_left->eval_int();
-                            s = m_right->eval_string();
-                            convert << value;
-                            str = convert.str();
-                            tmp = str;
-                            convert.clear();
-                            convert.str(string());
-                            return tmp <= s;
-                        }
-                        else
-                        {
-                            s = m_left->eval_string();
-                            value = m_right->eval_int();
-                            convert << value;
-                            str = convert.str();
-                            tmp = str;
-                            convert.clear();
-                            convert.str(string());
-                            return tmp <= s;
-                        }
-                    }
-                    else if (both == (DOUBLE|STRING))
-                    {
-                        double value;
-                        
-                        if (lhs == DOUBLE)
-                        {
-                            value = m_left->eval_double();
-                            s = m_right->eval_string();
-                            convert << value;
-                            str = convert.str();
-                            tmp = str;
-                            convert.clear();
-                            convert.str(string());
-                            return tmp <= s;
-                        }
-                        else
-                        {
-                            s = m_left->eval_string();
-                            value = m_right->eval_double();
-                            convert << value;
-                            str = convert.str();
-                            tmp = str;
-                            convert.clear();
-                            convert.str(string());
-                            return s <= tmp;
-                        } 
-                    }
-                    else
-                    {
-                        string l, r;
-                        l = m_left->eval_string();
-                        r = m_right->eval_string();
-                        return l <= r;
-                    }
-                }
+                left_str = m_left->eval_string();
+                right_str = m_right->eval_string();
+                return left_str >= right_str;
             }
         }
         if (m_op == GREATER_THAN_EQUAL)
@@ -1040,264 +307,11 @@ int Expression::eval_int()
             }
             else
             {
-                //need string holder to store string so we can compare
-                string str = "";
-                string tmp, s;
-                ostringstream convert;
-                int lhs = 0, rhs = 0, both;
-                if (m_left->m_var || m_right->m_var)
-                {
-                    if (m_left->m_var)
-                    {
-                        lhs = m_left->m_var->get_var_type();
-                        if (m_right->m_var)
-                        {
-                            rhs = m_right->m_var->get_var_type();
-                            both = (lhs|rhs);
-                            if (both == STRING)
-                            {
-                                string l, r;
-                                l = m_left->m_var->get_string_value();
-                                r = m_right->m_var->get_string_value();
-                                return l >= r;
-                            }
-                            else if (both == (INT|STRING))
-                            {
-                                int value;
+                string left_str, right_str;
 
-                                if (lhs == INT)
-                                {
-                                    value = m_left->m_var->get_int_value();
-                                    s = m_right->m_var->get_string_value();
-                                    convert << value;
-                                    str = convert.str();
-                                    tmp = str;
-                                    convert.clear();
-                                    convert.str(string());
-                                    return tmp >= s;
-                                }
-                                else
-                                {
-                                    s = m_left->m_var->get_string_value();
-                                    value = m_right->m_var->get_int_value();
-                                    convert << value;
-                                    str = convert.str();
-                                    tmp = str;
-                                    convert.clear();
-                                    convert.str(string());
-                                    return s >= tmp;
-                                }
-                            }
-                            else
-                            {
-                                double value;
-                                
-                                if (lhs == DOUBLE)
-                                {
-                                    value = m_left->m_var->get_double_value();
-                                    s = m_right->m_var->get_string_value();
-                                    convert << value;
-                                    str = convert.str();
-                                    tmp = str;
-                                    convert.clear();
-                                    convert.str(string());
-                                    return tmp >= s;
-                                }
-                                else
-                                {
-                                    s = m_left->m_var->get_string_value();
-                                    value = m_right->m_var->get_double_value();
-                                    convert << value;
-                                    str = convert.str();
-                                    tmp = str;
-                                    convert.clear();
-                                    convert.str(string());
-                                    return s >= tmp;
-                                }
-                            }
-
-                        }
-                        else
-                        {
-                            //m_right is not a variable
-                            lhs = m_left->m_var->get_var_type();
-                            rhs = m_right->get_type();
-                            both = (lhs|rhs);
-
-                            if (both == STRING)
-                            {
-                                string l, r;
-                                l = m_left->m_var->get_string_value();
-                                r = m_right->eval_string();
-                                return l >= r;
-                            }
-                            else if (both == (INT|STRING))
-                            {
-                                int value;
-
-                                if (lhs == INT)
-                                {
-                                    value = m_left->m_var->get_int_value();
-                                    s = m_right->eval_string();
-                                    convert << value;
-                                    str = convert.str();
-                                    tmp = str;
-                                    convert.clear();
-                                    convert.str(string());
-                                    return tmp >= s; 
-                                }
-                                else 
-                                {
-                                    s = m_left->m_var->get_string_value();
-                                    value = m_left->eval_int();
-                                    convert << value;
-                                    str = convert.str();
-                                    tmp = str;
-                                    convert.clear();
-                                    convert.str(string());
-                                    return s >= tmp;
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        //m_left is not a variable
-                        lhs = m_left->get_type();
-                        rhs = m_right->m_var->get_var_type();
-                        both = (lhs|rhs);
-
-                        if (both == STRING)
-                        {
-                            string l, r;
-                            l = m_left->eval_string();
-                            r = m_right->m_var->get_string_value();
-                            return l >= r;
-                        }
-                        else if (both == (INT|STRING))
-                        {
-                            int value;
-
-                            if (lhs == INT)
-                            {
-                                value = m_left->eval_int();
-                                s = m_right->m_var->get_string_value();
-                                convert << value;
-                                str = convert.str();
-                                tmp = str;
-                                convert.clear();
-                                convert.str(string());
-                                return tmp >= s;
-                            }
-                            else
-                            {
-                                s = m_left->eval_string();
-                                value = m_right->m_var->get_int_value();
-                                convert << value;
-                                str = convert.str();
-                                tmp = str;
-                                convert.clear();
-                                convert.str(string());
-                                return s >= tmp;
-                            }
-                        }
-                        else
-                        {
-                            double value;
-
-                            if (lhs == DOUBLE)
-                            {
-                                value = m_left->eval_double();
-                                s = m_right->m_var->get_string_value();
-                                convert << value;
-                                str = convert.str();
-                                tmp = str;
-                                convert.clear();
-                                convert.str(string());
-                                return tmp >= s;
-                            }
-                            else
-                            {
-                                s = m_left->eval_string();
-                                value = m_right->m_var->get_double_value();
-                                convert << value;
-                                str = convert.str();
-                                tmp = str;
-                                convert.clear();
-                                convert.str(string());
-                                return s >= tmp;
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    lhs = m_left->get_type();
-                    rhs = m_right->get_type();
-                    both = (lhs|rhs);
-                    
-                    if (both == (INT|STRING))
-                    {
-                        int value;
-
-                        if (lhs == INT)
-                        {
-                            value = m_left->eval_int();
-                            s = m_right->eval_string();
-                            convert << value;
-                            str = convert.str();
-                            tmp = str;
-                            convert.clear();
-                            convert.str(string());
-                            return tmp >= s;
-                        }
-                        else
-                        {
-                            s = m_left->eval_string();
-                            value = m_right->eval_int();
-                            convert << value;
-                            str = convert.str();
-                            tmp = str;
-                            convert.clear();
-                            convert.str(string());
-                            return tmp >= s;
-                        }
-                    }
-                    else if (both == (DOUBLE|STRING))
-                    {
-                        double value;
-                        
-                        if (lhs == DOUBLE)
-                        {
-                            value = m_left->eval_double();
-                            s = m_right->eval_string();
-                            convert << value;
-                            str = convert.str();
-                            tmp = str;
-                            convert.clear();
-                            convert.str(string());
-                            return tmp >= s;
-                        }
-                        else
-                        {
-                            s = m_left->eval_string();
-                            value = m_right->eval_double();
-                            convert << value;
-                            str = convert.str();
-                            tmp = str;
-                            convert.clear();
-                            convert.str(string());
-                            return s >= tmp;
-                        } 
-                    }
-                    else
-                    {
-                        string l, r;
-                        l = m_left->eval_string();
-                        r = m_right->eval_string();
-                        return l >= r;
-                    }
-                }
+                left_str = m_left->eval_string();
+                right_str = m_right->eval_string();
+                return left_str >= right_str;
             }
         }
         if (m_op == EQUAL)
@@ -1312,264 +326,11 @@ int Expression::eval_int()
             }
             else
             {
-                //need string holder to store string so we can compare
-                string str = "";
-                string tmp, s;
-                ostringstream convert;
-                int lhs = 0, rhs = 0, both;
-                if (m_left->m_var || m_right->m_var)
-                {
-                    if (m_left->m_var)
-                    {
-                        lhs = m_left->m_var->get_var_type();
-                        if (m_right->m_var)
-                        {
-                            rhs = m_right->m_var->get_var_type();
-                            both = (lhs|rhs);
-                            if (both == STRING)
-                            {
-                                string l, r;
-                                l = m_left->m_var->get_string_value();
-                                r = m_right->m_var->get_string_value();
-                                return l == r;
-                            }
-                            else if (both == (INT|STRING))
-                            {
-                                int value;
+                string left_str, right_str;
 
-                                if (lhs == INT)
-                                {
-                                    value = m_left->m_var->get_int_value();
-                                    s = m_right->m_var->get_string_value();
-                                    convert << value;
-                                    str = convert.str();
-                                    tmp = str;
-                                    convert.clear();
-                                    convert.str(string());
-                                    return tmp == s;
-                                }
-                                else
-                                {
-                                    s = m_left->m_var->get_string_value();
-                                    value = m_right->m_var->get_int_value();
-                                    convert << value;
-                                    str = convert.str();
-                                    tmp = str;
-                                    convert.clear();
-                                    convert.str(string());
-                                    return s == tmp;
-                                }
-                            }
-                            else
-                            {
-                                double value;
-                                
-                                if (lhs == DOUBLE)
-                                {
-                                    value = m_left->m_var->get_double_value();
-                                    s = m_right->m_var->get_string_value();
-                                    convert << value;
-                                    str = convert.str();
-                                    tmp = str;
-                                    convert.clear();
-                                    convert.str(string());
-                                    return tmp == s;
-                                }
-                                else
-                                {
-                                    s = m_left->m_var->get_string_value();
-                                    value = m_right->m_var->get_double_value();
-                                    convert << value;
-                                    str = convert.str();
-                                    tmp = str;
-                                    convert.clear();
-                                    convert.str(string());
-                                    return s == tmp;
-                                }
-                            }
-
-                        }
-                        else
-                        {
-                            //m_right is not a variable
-                            lhs = m_left->m_var->get_var_type();
-                            rhs = m_right->get_type();
-                            both = (lhs|rhs);
-
-                            if (both == STRING)
-                            {
-                                string l, r;
-                                l = m_left->m_var->get_string_value();
-                                r = m_right->eval_string();
-                                return l == r;
-                            }
-                            else if (both == (INT|STRING))
-                            {
-                                int value;
-
-                                if (lhs == INT)
-                                {
-                                    value = m_left->m_var->get_int_value();
-                                    s = m_right->eval_string();
-                                    convert << value;
-                                    str = convert.str();
-                                    tmp = str;
-                                    convert.clear();
-                                    convert.str(string());
-                                    return tmp == s; 
-                                }
-                                else 
-                                {
-                                    s = m_left->m_var->get_string_value();
-                                    value = m_left->eval_int();
-                                    convert << value;
-                                    str = convert.str();
-                                    tmp = str;
-                                    convert.clear();
-                                    convert.str(string());
-                                    return s == tmp;
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        //m_left is not a variable
-                        lhs = m_left->get_type();
-                        rhs = m_right->m_var->get_var_type();
-                        both = (lhs|rhs);
-
-                        if (both == STRING)
-                        {
-                            string l, r;
-                            l = m_left->eval_string();
-                            r = m_right->m_var->get_string_value();
-                            return l == r;
-                        }
-                        else if (both == (INT|STRING))
-                        {
-                            int value;
-
-                            if (lhs == INT)
-                            {
-                                value = m_left->eval_int();
-                                s = m_right->m_var->get_string_value();
-                                convert << value;
-                                str = convert.str();
-                                tmp = str;
-                                convert.clear();
-                                convert.str(string());
-                                return tmp == s;
-                            }
-                            else
-                            {
-                                s = m_left->eval_string();
-                                value = m_right->m_var->get_int_value();
-                                convert << value;
-                                str = convert.str();
-                                tmp = str;
-                                convert.clear();
-                                convert.str(string());
-                                return s == tmp;
-                            }
-                        }
-                        else
-                        {
-                            double value;
-
-                            if (lhs == DOUBLE)
-                            {
-                                value = m_left->eval_double();
-                                s = m_right->m_var->get_string_value();
-                                convert << value;
-                                str = convert.str();
-                                tmp = str;
-                                convert.clear();
-                                convert.str(string());
-                                return tmp == s;
-                            }
-                            else
-                            {
-                                s = m_left->eval_string();
-                                value = m_right->m_var->get_double_value();
-                                convert << value;
-                                str = convert.str();
-                                tmp = str;
-                                convert.clear();
-                                convert.str(string());
-                                return s == tmp;
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    lhs = m_left->get_type();
-                    rhs = m_right->get_type();
-                    both = (lhs|rhs);
-                    
-                    if (both == (INT|STRING))
-                    {
-                        int value;
-
-                        if (lhs == INT)
-                        {
-                            value = m_left->eval_int();
-                            s = m_right->eval_string();
-                            convert << value;
-                            str = convert.str();
-                            tmp = str;
-                            convert.clear();
-                            convert.str(string());
-                            return tmp == s;
-                        }
-                        else
-                        {
-                            s = m_left->eval_string();
-                            value = m_right->eval_int();
-                            convert << value;
-                            str = convert.str();
-                            tmp = str;
-                            convert.clear();
-                            convert.str(string());
-                            return tmp == s;
-                        }
-                    }
-                    else if (both == (DOUBLE|STRING))
-                    {
-                        double value;
-                        
-                        if (lhs == DOUBLE)
-                        {
-                            value = m_left->eval_double();
-                            s = m_right->eval_string();
-                            convert << value;
-                            str = convert.str();
-                            tmp = str;
-                            convert.clear();
-                            convert.str(string());
-                            return tmp == s;
-                        }
-                        else
-                        {
-                            s = m_left->eval_string();
-                            value = m_right->eval_double();
-                            convert << value;
-                            str = convert.str();
-                            tmp = str;
-                            convert.clear();
-                            convert.str(string());
-                            return s == tmp;
-                        } 
-                    }
-                    else
-                    {
-                        string l, r;
-                        l = m_left->eval_string();
-                        r = m_right->eval_string();
-                        return l == r;
-                    }
-                }
+                left_str = m_left->eval_string();
+                right_str = m_right->eval_string();
+                return left_str == right_str;
             }
         }
         if (m_op == NOT_EQUAL)
@@ -1584,264 +345,11 @@ int Expression::eval_int()
             }
             else
             {
-                //need string holder to store string so we can compare
-                string str = "";
-                string tmp, s;
-                ostringstream convert;
-                int lhs = 0, rhs = 0, both;
-                if (m_left->m_var || m_right->m_var)
-                {
-                    if (m_left->m_var)
-                    {
-                        lhs = m_left->m_var->get_var_type();
-                        if (m_right->m_var)
-                        {
-                            rhs = m_right->m_var->get_var_type();
-                            both = (lhs|rhs);
-                            if (both == STRING)
-                            {
-                                string l, r;
-                                l = m_left->m_var->get_string_value();
-                                r = m_right->m_var->get_string_value();
-                                return l != r;
-                            }
-                            else if (both == (INT|STRING))
-                            {
-                                int value;
+                string left_str, right_str;
 
-                                if (lhs == INT)
-                                {
-                                    value = m_left->m_var->get_int_value();
-                                    s = m_right->m_var->get_string_value();
-                                    convert << value;
-                                    str = convert.str();
-                                    tmp = str;
-                                    convert.clear();
-                                    convert.str(string());
-                                    return tmp != s;
-                                }
-                                else
-                                {
-                                    s = m_left->m_var->get_string_value();
-                                    value = m_right->m_var->get_int_value();
-                                    convert << value;
-                                    str = convert.str();
-                                    tmp = str;
-                                    convert.clear();
-                                    convert.str(string());
-                                    return s != tmp;
-                                }
-                            }
-                            else
-                            {
-                                double value;
-                                
-                                if (lhs == DOUBLE)
-                                {
-                                    value = m_left->m_var->get_double_value();
-                                    s = m_right->m_var->get_string_value();
-                                    convert << value;
-                                    str = convert.str();
-                                    tmp = str;
-                                    convert.clear();
-                                    convert.str(string());
-                                    return tmp != s;
-                                }
-                                else
-                                {
-                                    s = m_left->m_var->get_string_value();
-                                    value = m_right->m_var->get_double_value();
-                                    convert << value;
-                                    str = convert.str();
-                                    tmp = str;
-                                    convert.clear();
-                                    convert.str(string());
-                                    return s != tmp;
-                                }
-                            }
-
-                        }
-                        else
-                        {
-                            //m_right is not a variable
-                            lhs = m_left->m_var->get_var_type();
-                            rhs = m_right->get_type();
-                            both = (lhs|rhs);
-
-                            if (both == STRING)
-                            {
-                                string l, r;
-                                l = m_left->m_var->get_string_value();
-                                r = m_right->eval_string();
-                                return l != r;
-                            }
-                            else if (both == (INT|STRING))
-                            {
-                                int value;
-
-                                if (lhs == INT)
-                                {
-                                    value = m_left->m_var->get_int_value();
-                                    s = m_right->eval_string();
-                                    convert << value;
-                                    str = convert.str();
-                                    tmp = str;
-                                    convert.clear();
-                                    convert.str(string());
-                                    return tmp != s; 
-                                }
-                                else 
-                                {
-                                    s = m_left->m_var->get_string_value();
-                                    value = m_left->eval_int();
-                                    convert << value;
-                                    str = convert.str();
-                                    tmp = str;
-                                    convert.clear();
-                                    convert.str(string());
-                                    return s != tmp;
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        //m_left is not a variable
-                        lhs = m_left->get_type();
-                        rhs = m_right->m_var->get_var_type();
-                        both = (lhs|rhs);
-
-                        if (both == STRING)
-                        {
-                            string l, r;
-                            l = m_left->eval_string();
-                            r = m_right->m_var->get_string_value();
-                            return l != r;
-                        }
-                        else if (both == (INT|STRING))
-                        {
-                            int value;
-
-                            if (lhs == INT)
-                            {
-                                value = m_left->eval_int();
-                                s = m_right->m_var->get_string_value();
-                                convert << value;
-                                str = convert.str();
-                                tmp = str;
-                                convert.clear();
-                                convert.str(string());
-                                return tmp != s;
-                            }
-                            else
-                            {
-                                s = m_left->eval_string();
-                                value = m_right->m_var->get_int_value();
-                                convert << value;
-                                str = convert.str();
-                                tmp = str;
-                                convert.clear();
-                                convert.str(string());
-                                return s != tmp;
-                            }
-                        }
-                        else
-                        {
-                            double value;
-
-                            if (lhs == DOUBLE)
-                            {
-                                value = m_left->eval_double();
-                                s = m_right->m_var->get_string_value();
-                                convert << value;
-                                str = convert.str();
-                                tmp = str;
-                                convert.clear();
-                                convert.str(string());
-                                return tmp != s;
-                            }
-                            else
-                            {
-                                s = m_left->eval_string();
-                                value = m_right->m_var->get_double_value();
-                                convert << value;
-                                str = convert.str();
-                                tmp = str;
-                                convert.clear();
-                                convert.str(string());
-                                return s != tmp;
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    lhs = m_left->get_type();
-                    rhs = m_right->get_type();
-                    both = (lhs|rhs);
-                    
-                    if (both == (INT|STRING))
-                    {
-                        int value;
-
-                        if (lhs == INT)
-                        {
-                            value = m_left->eval_int();
-                            s = m_right->eval_string();
-                            convert << value;
-                            str = convert.str();
-                            tmp = str;
-                            convert.clear();
-                            convert.str(string());
-                            return tmp != s;
-                        }
-                        else
-                        {
-                            s = m_left->eval_string();
-                            value = m_right->eval_int();
-                            convert << value;
-                            str = convert.str();
-                            tmp = str;
-                            convert.clear();
-                            convert.str(string());
-                            return tmp != s;
-                        }
-                    }
-                    else if (both == (DOUBLE|STRING))
-                    {
-                        double value;
-                        
-                        if (lhs == DOUBLE)
-                        {
-                            value = m_left->eval_double();
-                            s = m_right->eval_string();
-                            convert << value;
-                            str = convert.str();
-                            tmp = str;
-                            convert.clear();
-                            convert.str(string());
-                            return tmp != s;
-                        }
-                        else
-                        {
-                            s = m_left->eval_string();
-                            value = m_right->eval_double();
-                            convert << value;
-                            str = convert.str();
-                            tmp = str;
-                            convert.clear();
-                            convert.str(string());
-                            return s != tmp;
-                        } 
-                    }
-                    else
-                    {
-                        string l, r;
-                        l = m_left->eval_string();
-                        r = m_right->eval_string();
-                        return l != r;
-                    }
-                }
+                left_str = m_left->eval_string();
+                right_str = m_right->eval_string();
+                return left_str != right_str;
             }
         }
         if (m_op == AND)
@@ -1852,18 +360,7 @@ int Expression::eval_int()
             }
             else if (m_type == DOUBLE)
             {
-                if (m_left->get_type() == INT)
-                {
-                    return m_left->eval_int() && m_right->eval_double();
-                }
-                else if (m_right->get_type() == INT)
-                {
-                    return m_left->eval_double() && m_right->eval_int();
-                }
-                else
-                {
-                    return m_left->eval_double() && m_right->eval_double();
-                }
+                return m_left->eval_double() && m_right->eval_double();
             }
         }
         if (m_op == OR)
@@ -1874,18 +371,7 @@ int Expression::eval_int()
             }
             else if (m_type == DOUBLE)
             {
-                if (m_left->get_type() == INT)
-                {
-                    return m_left->eval_int() || m_right->eval_double();
-                }
-                else if (m_right->get_type() == INT)
-                {
-                    return m_left->eval_double() || m_right->eval_int();
-                }
-                else
-                {
-                    return m_left->eval_double() || m_right->eval_double();
-                }
+                return m_left->eval_double() || m_right->eval_double();
             }
         }
     }
@@ -1924,6 +410,12 @@ int Expression::eval_int()
     }
     if (m_kind == MATH_OP)
     {
+        if (m_op == RANDOM)
+        {
+            //srand(rand() ^ time(NULL));
+            return rand() % m_left->eval_int();
+        }
+        else
         return m_left->eval_double();
     }
     if (m_kind == VARIABLE) 
@@ -1945,88 +437,48 @@ double Expression::eval_double()
     }
     if (m_kind == BINARY_OP)
     {
-        int a, b, c;
-        a = m_left->get_type();
-        b = m_right->get_type();
-        c = a|b;
         if (m_op == PLUS)
         {
-            if (c == INT)
+            if (m_type == INT)
             {
                 return m_left->eval_int() + m_right->eval_int();
             }
-            else if (c == DOUBLE)
+            else if (m_type == DOUBLE)
             {
-                return m_left->eval_int() + m_right->eval_int();   
-            }
-            else if (c == (INT|DOUBLE))
-            {
-                if (m_left->get_type() == INT)
-                {
-                    return m_left->eval_int() + m_right->eval_double();
-                }
-                else 
-                    return m_left->eval_double() + m_right->eval_int();
+                return m_left->eval_double() + m_right->eval_double();
             }
         }
         if (m_op == MINUS)
         {
-            if (c == INT)
+            if (m_type == INT)
             {
                 return m_left->eval_int() - m_right->eval_int();
             }
-            else if (c == DOUBLE)
+            else if (m_type == DOUBLE)
             {
                 return m_left->eval_double() - m_right->eval_double();
-            }
-            else if (c == (INT|DOUBLE))
-            {
-                if (m_left->get_type() == INT)
-                {
-                    return m_left->eval_int() - m_right->eval_double();
-                }
-                else 
-                    return m_left->eval_double() - m_right->eval_int();
             }
         }
         if (m_op == MULTIPLY)
         {
-            if (c == INT)
+            if (m_type == INT)
             {
                 return m_left->eval_int() * m_right->eval_int();
             }
-            else if (c == DOUBLE)
+            else if (m_type == DOUBLE)
             {
                 return m_left->eval_double() * m_right->eval_double();
-            }
-            else if (c == (INT|DOUBLE))
-            {
-                if (m_left->get_type() == INT)
-                {
-                    return m_left->eval_int() * m_right->eval_double();
-                }
-                else 
-                    return m_left->eval_double() * m_right->eval_int();
             }   
         }
         if (m_op == DIVIDE)
         {
-            if (c == INT)
+            if (m_type == INT)
             {
                 return m_left->eval_int() / m_right->eval_int();
             }
-            else if (c == DOUBLE)
+            else if (m_type == DOUBLE)
             {
                 return m_left->eval_double() / m_right->eval_double();
-            }
-            else if (c == (INT|DOUBLE))
-            {
-                if (m_left->get_type() == INT)
-                {
-                    return m_left->eval_int() / m_right->eval_double();
-                }
-                else 
-                    return m_left->eval_double() / m_right->eval_int();
             }   
         }
     }
@@ -2039,11 +491,21 @@ double Expression::eval_double()
         //maybe I just need to call eval_int, it handle it?
         if (m_op == NOT)
         {
-            return !m_left->eval_double();
+            if (m_type == INT)
+            {
+                return !m_left->eval_int();
+            }
+            else
+                return !m_left->eval_double();
         }
         if (m_op == UNARY_MINUS)
         {
-            return -m_left->eval_double();
+            if (m_type == INT)
+            {
+                return -m_left->eval_int();
+            }
+            else
+                return -m_left->eval_double();
         }
     }
     if (m_kind == MATH_OP)
@@ -2062,7 +524,6 @@ double Expression::eval_double()
         }
         if (m_op == ASIN)
         {
-            //value = value * M_PI / 180;
             return asin(m_left->eval_double()) * 180 / M_PI;
         }
         if (m_op == ACOS)
@@ -2083,23 +544,25 @@ double Expression::eval_double()
         }
         if (m_op == ABS)
         {
-            if (m_type == INT)
+            /*if (m_type == INT)
             {
                 return abs(m_left->eval_int());
             }
-            else
+            else*/
                 return abs(m_left->eval_double());
         }
         if (m_op == RANDOM)
         {
             srand(rand() ^ time(NULL));
-            if (m_type == DOUBLE)
+            /*if (m_type == DOUBLE)
             {
                 int value = floor(m_left->eval_double());
                 return rand() % value;
             }
-            else
-                return rand() % m_left->eval_int();
+            else*/
+            //srand(time(NULL));
+            int value = floor(m_left->eval_double());
+            return rand() % value;
         }
     }
     if (m_kind == TRUE)
@@ -2168,266 +631,18 @@ string Expression::eval_string()
             if (m_type == INT)
             {
                 int value;
-                if (m_left->m_var || m_right->m_var)
-                {
-                    if (m_left->m_var)
-                    {
-                        if (m_right->m_var)
-                        {
-                            value = m_left->m_var->get_int_value() +
-                                    m_right->m_var->get_int_value();
-                            convert << value;
-                        }
-                        else
-                        {
-                            value = m_left->m_var->get_int_value() + 
-                                    m_right->eval_int();
-                            convert << value;
-                        }
-
-                    }
-                    else
-                    {
-                        value = m_left->eval_int() + 
-                                m_right->m_var->get_int_value();
-                        convert << value;
-                    }
-                }
-                else
-                {
-                    value = eval_int();
-                    convert << value;
-                }
+                value = m_left->eval_int() + m_right->eval_int();
+                convert << value;
             }
             else if (m_type == DOUBLE)
             {
                 double value;
-                if (m_left->m_var || m_right->m_var)
-                {
-                    if (m_left->m_var)
-                    {
-                        if (m_right->m_var)
-                        {
-                            value = m_left->m_var->get_double_value() +
-                                    m_right->m_var->get_double_value();
-                            convert << value;
-                        }
-                        else
-                        {
-                            value = m_left->m_var->get_double_value() + 
-                                    m_right->eval_double();
-                            convert << value;
-                        }
-
-                    }
-                    else
-                    {
-                        value = m_left->eval_double() + 
-                                m_right->m_var->get_double_value();
-                        convert << value;
-                    }
-                }
-                else
-                {
-                    value = eval_double();
-                    convert << value;
-                }
-                value = eval_double();
+                value = m_left->eval_double() + m_right->eval_double();
                 convert << value;
             }
             else  
             {
-                int a, b, c;
-                a = m_left->get_type();
-                b = m_right->get_type();
-                c = a|b;
-
-                if (m_left->m_var || m_right->m_var)
-                {
-                    int left, right, both;
-                    if (m_left->m_var)
-                    {
-                        left = m_left->m_var->get_var_type();
-                        if (m_right->m_var)
-                        {
-                            right = m_right->m_var->get_var_type();
-                            both = (left|right);
-                            if (both == (INT|STRING))
-                            {
-                                int value;
-                                string s;
-
-                                if (left == INT)
-                                {
-                                    value = m_left->m_var->get_int_value();
-                                    s = m_right->m_var->get_string_value();
-                                    convert << value << s;
-                                }
-                                else
-                                {
-                                    s = m_left->m_var->get_string_value();
-                                    value = m_right->m_var->get_int_value();
-                                    convert << s << value;
-                                }
-                            }
-                            else if (both == (DOUBLE|STRING))
-                            {
-                                double value;
-                                string s;
-
-                                if (left == DOUBLE)
-                                {
-                                    value = m_left->m_var->get_double_value();
-                                    s = m_right->m_var->get_string_value();
-                                    convert << value << s;
-                                }
-                                else
-                                {
-                                    s = m_left->m_var->get_string_value();
-                                    value = m_right->m_var->get_double_value();
-                                    convert << s << value;
-                                }
-                            }
-                            else
-                            {
-                                return m_left->m_var->get_string_value() +
-                                       m_right->m_var->get_string_value();
-                            }
-                        }
-                        else
-                        {
-                            //m_right is a const
-                            right = m_right->get_type();
-                            both = (left|right);
-                            
-                            if (both == (INT|STRING))
-                            {
-                                int value;
-                                string s;
-
-                                if (left == INT)
-                                {
-                                    value = m_left->m_var->get_int_value();
-                                    s = m_right->eval_string();
-                                    convert << value << s;
-                                }
-                                else 
-                                {
-                                    s = m_left->m_var->get_string_value();
-                                    value = m_right->eval_int();
-                                    convert << s << value;
-                                }
-                            }
-                            else if (both == (DOUBLE|STRING))
-                            {
-                                double value;
-                                string s;
-
-                                if (left == DOUBLE)
-                                {
-                                    value = m_left->m_var->get_double_value();
-                                    s = m_right->eval_string();
-                                    convert << value << s;
-                                }
-                                else
-                                {
-                                    s = m_left->m_var->get_string_value();
-                                    value = m_right->eval_double();
-                                    convert << s << value;
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        //m_right is a variable
-                        left = m_left->get_type();
-                        right = m_right->m_var->get_var_type();
-                        both = (left|right);
-
-                        if (both == (INT|STRING))
-                        {
-                            int value;
-                            string s;
-
-                            if (left == INT)
-                            {
-                                value = m_left->eval_int();
-                                s = m_right->m_var->get_string_value();
-                                convert << value << s;
-                            }
-                            else
-                            {
-                                s = m_left->eval_string();
-                                value = m_right->m_var->get_int_value();
-                                convert << s << value;
-                            }
-                        }
-                        else if (both == (DOUBLE|STRING))
-                        {
-                            double value;
-                            string s;
-
-                            if (left == DOUBLE)
-                            {
-                                value = m_left->eval_double();
-                                s = m_right->m_var->get_string_value();
-                                convert << value << s;
-                            }
-                            else
-                            {
-                                s = m_left->eval_string();
-                                value = m_right->m_var->get_double_value();
-                                convert << s << value;
-                            }
-                        }
-                        else
-                        {
-                            return m_left->eval_string() + 
-                                   m_right->m_var->get_string_value();
-                        }
-                    }
-                }
-                if (c == (INT|STRING))
-                {
-                    int value;
-                    string s;
-
-                    if (a == INT)
-                    {
-                        value = m_left->eval_int();
-                        s = m_right->eval_string();
-                        convert << value << s;
-                    }
-                    else
-                    {
-                        s = m_left->eval_string();
-                        value = m_right->eval_int();
-                        convert << s << value;
-                    }
-                }
-                else if (c == (DOUBLE|STRING))
-                {
-                    double value;
-                    string s;
-
-                    if (a == DOUBLE)
-                    {
-                        value = m_left->eval_double();
-                        s = m_right->eval_string();
-                        convert << value << s;
-                    }
-                    else
-                    {
-                        s = m_left->eval_string();
-                        value = m_right->eval_int();
-                        convert << s << value;
-                    }
-                }
-                else 
-                {
-                    return m_left->eval_string() + m_right->eval_string();
-                }
+                return m_left->eval_string() + m_right->eval_string();
             }
         }
         else

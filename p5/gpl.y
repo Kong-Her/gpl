@@ -190,19 +190,18 @@ variable_declaration:
                 
             if (init_expr != NULL)
             {
-                //if (init_expr->get_type() == INT)
-                /*if (double_value)
+                if (init_expr->get_type() != INT)
                 {
                     Error::error(Error::INVALID_TYPE_FOR_INITIAL_VALUE, *$2, "", "");
                 }
                 else
-                {*/
+                {
                     int_value = init_expr->eval_int();
 	            new_symbol = new Symbol($1, *$2, int_value);
                     //else Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, *$2, "", "");
-                //}
+                }
             }
-            else if (init_expr == NULL) 
+            else 
                 new_symbol = new Symbol($1, *$2, 0);
 	}
 	else if ($1 == DOUBLE)
@@ -213,10 +212,17 @@ variable_declaration:
             }*/
             if (init_expr != NULL)
             {
-                double_value = init_expr->eval_double();
-	        new_symbol = new Symbol($1, *$2, double_value);
+                if (init_expr->get_type() == STRING)
+                {
+                    Error::error(Error::INVALID_TYPE_FOR_INITIAL_VALUE, *$2, "", "");
+                }
+                else
+                {
+                    double_value = init_expr->eval_double();
+	            new_symbol = new Symbol($1, *$2, double_value);
+                }
             }
-            else if (init_expr == NULL)
+            else 
                 new_symbol = new Symbol($1, *$2, 0);
 	}
 	else if ($1 == STRING)
@@ -227,7 +233,7 @@ variable_declaration:
                 string_value = init_expr->eval_string();
 	        new_symbol = new Symbol($1, *$2, string_value);
             }
-            else if (init_expr == NULL)
+            else 
                 new_symbol = new Symbol($1, *$2, "");
                 //else Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, *$2, "", "");
             
@@ -245,19 +251,32 @@ variable_declaration:
 	Symbol *new_symbol;
 	ostringstream str;
         int int_value = 0;
-        double double_value = 0;
-        string string_value = "";
+        double double_value;
+        string string_value;
 
-        int_value = init_expr->eval_int();
-        //double_value = init_expr->eval_double();
-        //string_value = init_expr->eval_string();
-        
         //need to check array size is valid, ex: double, string
-        if (init_expr->get_type() != INT)
+        if (init_expr->get_type() == DOUBLE)
         {
-            Error::error(Error::INVALID_ARRAY_SIZE, *$2, init_expr->eval_string(), "");
+            double_value = init_expr->eval_double();
+            str << double_value;
+            Error::error(Error::INVALID_ARRAY_SIZE, *$2,
+                         str.str(), "");
+	    str.clear();
+	    str.str(string());
         }
-        if (init_expr == NULL)
+        else if (init_expr->get_type() == STRING)
+        {
+            string_value = init_expr->eval_string();
+            /*if (init_expr->get_op_type() > 0)
+            {
+                Error::error(Error::INVALID_ARRAY_SIZE, *$2,
+                             string_value, "");
+            }
+            else*/
+                Error::error(Error::ARRAY_INDEX_MUST_BE_AN_INTEGER, *$2, 
+                             "A string expression", "");
+        }
+        else if (init_expr == NULL)
         {
             Error::error(Error::INVALID_ARRAY_SIZE, *$2, init_expr->eval_string(), "");
             //Error::error(Error::INVALID_TYPE_FOR_INITIAL_VALUE, "", "", "");
@@ -266,31 +285,24 @@ variable_declaration:
         {
             Error::error(Error::INVALID_ARRAY_SIZE, *$2, "0", ""); 
         }
-        /*else if (double_value)
-        {
-            Error::error(Error::ARRAY_INDEX_MUST_BE_AN_INTEGER, 
-                         "", "A double expression", "");
-        }
-        else if (string_value != "")
-        {
-            Error::error(Error::ARRAY_INDEX_MUST_BE_AN_INTEGER,
-                         "", "A string expression", "");
-        }*/
         else 
         {
             for (int i = 0; i < int_value; i++)
             {
                 if ($1 == INT)
                 {
-                    new_symbol = new Symbol($1, *$2, i);
+                    str << *$2 << "[" << i << "]";
+                    new_symbol = new Symbol($1, *$2, 0);
                 }
                 else if ($1 == DOUBLE)
                 {
-                    new_symbol = new Symbol($1, *$2, i);
+                    str << *$2 << "[" << i << "]";
+                    new_symbol = new Symbol($1, *$2, 0);
                 }
                 else if ($1 == STRING)
                 {
-                    new_symbol = new Symbol($1, *$2, i);
+                    str << *$2 << "[" << i << "]";
+                    new_symbol = new Symbol($1, *$2, "");
                 }
                 if (!symbol_table->insert(new_symbol, *$2, yes))
                 {
