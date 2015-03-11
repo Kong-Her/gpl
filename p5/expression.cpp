@@ -1,6 +1,10 @@
 #include "expression.h"
 #include "variable.h"
 
+Expression::Expression(int dummie)
+{
+    m_dummie = dummie;
+}
 Expression::Expression(int val, Kind kind)
 {
     m_int_val = val;
@@ -30,7 +34,7 @@ Expression::Expression(Variable *var, Kind kind)
     if(var)
     {
         int var_type = var->get_var_type();
-        
+
         if (var_type == INT)
         {
             m_type = INT;
@@ -143,11 +147,11 @@ Expression::Expression(Operator_type op, Kind kind, Expression *left, Expression
         }
         else if (op == MINUS || op == MULTIPLY || op == DIVIDE)
         {
-            left_type = left->get_type();
+            /*left_type = left->get_type();
             right_type = right->get_type();
-            both = (left_type|right_type);
+            both = (left_type|right_type);*/
 
-            if (both == INT)
+            if (left->get_type() == INT && right->get_type() == INT)
             {
                 m_type = INT;
             }
@@ -167,18 +171,27 @@ Expression::Expression(Operator_type op, Kind kind, Expression *left)
 
     if (left)
     {
-        int left_type = left->get_type();
-        if (op == UNARY_MINUS)
+        if (kind == MATH_OP)
+        {
+            if (op == RANDOM || op == FLOOR)
+            {
+                m_type = INT;
+            }
+            else 
+                m_type = DOUBLE;
+        }
+        else if (op == NOT)
         {
             m_type = INT;
         }
         else if (op == UNARY_MINUS)
         {
+            int left_type = left->get_type();
             if (left_type == INT)
             {
                 m_type = INT;
             }
-            else 
+            else if (left_type == DOUBLE)
             {
                 m_type = DOUBLE;
             }
@@ -203,7 +216,7 @@ int Expression::eval_int()
         {
             if (m_type == INT)
             {
-                return m_left->eval_int() + m_right->eval_int();
+                return m_left->eval_int() - m_right->eval_int();
             }
             else
                 return eval_double();
@@ -254,6 +267,7 @@ int Expression::eval_int()
 
                 left_str = m_left->eval_string();
                 right_str = m_right->eval_string();
+
                 return left_str < right_str;
             }
         }
@@ -273,6 +287,7 @@ int Expression::eval_int()
 
                 left_str = m_left->eval_string();
                 right_str = m_right->eval_string();
+
                 return left_str > right_str;
             }
         }
@@ -292,7 +307,8 @@ int Expression::eval_int()
 
                 left_str = m_left->eval_string();
                 right_str = m_right->eval_string();
-                return left_str >= right_str;
+
+                return left_str <= right_str;
             }
         }
         if (m_op == GREATER_THAN_EQUAL)
@@ -311,6 +327,7 @@ int Expression::eval_int()
 
                 left_str = m_left->eval_string();
                 right_str = m_right->eval_string();
+
                 return left_str >= right_str;
             }
         }
@@ -330,6 +347,7 @@ int Expression::eval_int()
 
                 left_str = m_left->eval_string();
                 right_str = m_right->eval_string();
+
                 return left_str == right_str;
             }
         }
@@ -349,19 +367,20 @@ int Expression::eval_int()
 
                 left_str = m_left->eval_string();
                 right_str = m_right->eval_string();
+
                 return left_str != right_str;
             }
         }
         if (m_op == AND)
         {
-            if (m_type == INT)
-            {
-                return m_left->eval_int() && m_right->eval_int();
-            }
-            else if (m_type == DOUBLE)
+            //if (m_type == INT)
+            //{
+                return m_left->eval_double() && m_right->eval_double();
+            //}
+            /*else if (m_type == DOUBLE)
             {
                 return m_left->eval_double() && m_right->eval_double();
-            }
+            }*/
         }
         if (m_op == OR)
         {
@@ -377,27 +396,22 @@ int Expression::eval_int()
     }
     if (m_kind == UNARY_OP)
     {
-        if (m_op == UNARY_MINUS)
+        if (m_op == MINUS)
         {
-            if (m_type == INT)
+            /*if (m_type == INT)
+            {*/
+                int val = m_left->eval_int();
+                return -val;
+            //}
+            /*else
             {
-                return -m_left->eval_int();
-            }
-            else
-            {
-                return -m_left->eval_double();
-            }
+                double val = m_left->eval_double();
+                return -val;
+            }*/
         }
         if (m_op == NOT)
         {
-            if (m_type == INT)
-            {
-                return !m_left->eval_int();
-            }
-            else 
-            {
-                return !m_left->eval_double();
-            }
+            return !(m_left->eval_double());
         }
     }
     if (m_kind == TRUE)
@@ -412,11 +426,14 @@ int Expression::eval_int()
     {
         if (m_op == RANDOM)
         {
-            //srand(rand() ^ time(NULL));
             return rand() % m_left->eval_int();
         }
+        else if (m_op == ABS)
+        {
+            return abs(m_left->eval_double());
+        }
         else
-        return m_left->eval_double();
+            return m_left->eval_double();
     }
     if (m_kind == VARIABLE) 
     {
@@ -491,21 +508,12 @@ double Expression::eval_double()
         //maybe I just need to call eval_int, it handle it?
         if (m_op == NOT)
         {
-            if (m_type == INT)
-            {
-                return !m_left->eval_int();
-            }
-            else
-                return !m_left->eval_double();
+            return !(m_left->eval_double());
         }
-        if (m_op == UNARY_MINUS)
+        if (m_op == MINUS)
         {
-            if (m_type == INT)
-            {
-                return -m_left->eval_int();
-            }
-            else
-                return -m_left->eval_double();
+            double val = m_left->eval_double();
+            return -val;
         }
     }
     if (m_kind == MATH_OP)
@@ -544,23 +552,10 @@ double Expression::eval_double()
         }
         if (m_op == ABS)
         {
-            /*if (m_type == INT)
-            {
-                return abs(m_left->eval_int());
-            }
-            else*/
-                return abs(m_left->eval_double());
+            return abs(m_left->eval_double());
         }
         if (m_op == RANDOM)
         {
-            srand(rand() ^ time(NULL));
-            /*if (m_type == DOUBLE)
-            {
-                int value = floor(m_left->eval_double());
-                return rand() % value;
-            }
-            else*/
-            //srand(time(NULL));
             int value = floor(m_left->eval_double());
             return rand() % value;
         }
@@ -625,10 +620,9 @@ string Expression::eval_string()
     }
     if (m_kind == BINARY_OP)
     {
-        double value;
-        if (m_op == PLUS)
-        {
-            if (m_type == INT)
+        //if (m_op == PLUS)
+        //{
+            /*if (m_type == INT)
             {
                 int value;
                 value = m_left->eval_int() + m_right->eval_int();
@@ -641,25 +635,23 @@ string Expression::eval_string()
                 convert << value;
             }
             else  
-            {
+            {*/
                 return m_left->eval_string() + m_right->eval_string();
-            }
-        }
-        else
-        {
-            value = eval_double();
-            convert << value;
-        }
-        str = convert.str();
-        tmp = str;
-        convert.clear();
-        convert.str(string());
-        return tmp;
+            //}
+        //}
     }
     if (m_kind == MATH_OP)
     {
-        double value = eval_double();
-        convert << value;
+        if (m_type == INT)
+        {
+            int value = eval_int();
+            convert << value;
+        }
+        else
+        {
+            double value = eval_double();
+            convert << value;
+        }
         str = convert.str();
         tmp = str;
         convert.clear();
@@ -675,26 +667,6 @@ string Expression::eval_string()
         convert.clear();
         convert.str(string());
         return tmp;  
-    }
-    if (m_kind == TRUE)
-    {
-        int value = eval_int();
-        convert << value;
-        str = convert.str();
-        tmp = str;
-        convert.clear();
-        convert.str(string());
-        return tmp;
-    }
-    if (m_kind == FALSE)
-    {
-        int value = eval_int();
-        convert << value;
-        str = convert.str();
-        tmp = str;
-        convert.clear();
-        convert.str(string());
-        return tmp;
     }
     if (m_kind == STRING_CONST)
     {

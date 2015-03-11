@@ -16,6 +16,7 @@ enum Kind { INT_CONST, DOUBLE_CONST, STRING_CONST, VARIABLE,
 class Expression
 {
     public:
+        Expression(int);
         Expression(int, Kind);
         Expression(double, Kind);
         Expression(string, Kind);
@@ -38,6 +39,7 @@ class Expression
         double m_double_val;
         string m_string_val;
         Kind m_kind;
+        int m_dummie;
 
 };
 

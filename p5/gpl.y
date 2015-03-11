@@ -16,6 +16,8 @@ extern int line_count;            // current line in the input; from record.l
 #include <sstream>
 using namespace std;
 
+int undeclared = 0;
+Variable *undeclared_var = new Variable(new Symbol("__undeclared", undeclared));
 Symbol_table *symbol_table = Symbol_table::instance();
 
 // bison syntax to indicate the end of the header
@@ -150,7 +152,7 @@ Symbol_table *symbol_table = Symbol_table::instance();
 %left T_ELSE
 %left T_OR 
 %left T_AND 
-%left T_EQUAL T_NOT_EQUAL T_GREATER T_GREATER_EQUAL T_LESS T_LESS_EQUAL
+%left T_NOT T_EQUAL T_NOT_EQUAL T_GREATER T_GREATER_EQUAL T_LESS T_LESS_EQUAL
 %left T_PLUS T_MINUS
 %left T_ASTERISK T_DIVIDE T_MOD
 
@@ -198,23 +200,20 @@ variable_declaration:
                 {
                     int_value = init_expr->eval_int();
 	            new_symbol = new Symbol($1, *$2, int_value);
-                    //else Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, *$2, "", "");
                 }
+                //else Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, *$2, "", "");
             }
             else 
                 new_symbol = new Symbol($1, *$2, 0);
 	}
 	else if ($1 == DOUBLE)
 	{
-            /*if (0)
-            {
-            Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, *$2, "", "");
-            }*/
             if (init_expr != NULL)
             {
                 if (init_expr->get_type() == STRING)
                 {
-                    Error::error(Error::INVALID_TYPE_FOR_INITIAL_VALUE, *$2, "", "");
+                    Error::error(Error::INVALID_TYPE_FOR_INITIAL_VALUE,
+                                 *$2, "", "");
                 }
                 else
                 {
@@ -222,7 +221,7 @@ variable_declaration:
 	            new_symbol = new Symbol($1, *$2, double_value);
                 }
             }
-            else 
+            else
                 new_symbol = new Symbol($1, *$2, 0);
 	}
 	else if ($1 == STRING)
@@ -273,8 +272,8 @@ variable_declaration:
                              string_value, "");
             }
             else*/
-                Error::error(Error::ARRAY_INDEX_MUST_BE_AN_INTEGER, *$2, 
-                             "A string expression", "");
+                Error::error(Error::INVALID_ARRAY_SIZE, *$2, 
+                             string_value, "");
         }
         else if (init_expr == NULL)
         {
@@ -523,6 +522,7 @@ variable:
         if (sym == NULL)
         {
             Error::error(Error::UNDECLARED_VARIABLE, *$1, "", "");
+            $$ = undeclared_var;
         }
         else
         {
@@ -532,29 +532,41 @@ variable:
     | T_ID T_LBRACKET expression T_RBRACKET
     {
         Expression *init_expr = $3;
+        string tmp;
+        ostringstream convert;
+        int expr_val = 0;
+
+        //convert << *$1 << "[0]";
+        //tmp = convert.str();
         Symbol *sym = symbol_table->lookup(*$1);
       
-        if (sym != NULL)
+        if (init_expr->get_type() == STRING)
         {
-            int value = init_expr->eval_int();
-            if (init_expr->get_type() == STRING)
-            {
-                Error::error(Error::ARRAY_INDEX_MUST_BE_AN_INTEGER,
-                             *$1, "A string expression", ""); 
-            }
-            if (init_expr->get_type() == DOUBLE)
-            {
-                Error::error(Error::ARRAY_INDEX_MUST_BE_AN_INTEGER,
-                             *$1, "A double expression", ""); 
-            }
-            if (value <= 0)
+            tmp = init_expr->eval_string();
+            Error::error(Error::INVALID_ARRAY_SIZE, *$1, tmp, ""); 
+            $$ = undeclared_var;
+        }
+        else if (init_expr->get_type() == DOUBLE)
+        {
+            Error::error(Error::ARRAY_INDEX_MUST_BE_AN_INTEGER,
+                         *$1, "A double expression", "");
+            $$ = undeclared_var;
+        }
+        else if (sym != NULL)
+        {
+            expr_val = init_expr->eval_int();
+            if (expr_val <= 0)
             {
                 Error::error(Error::INVALID_ARRAY_SIZE, *$1, "", "");
             }
             else
                 $$ = new Variable(*$1, sym->getType(), sym, $3);
         }
-        else Error::error(Error::UNDECLARED_VARIABLE, *$1, "", "");
+        else
+        {
+            Error::error(Error::UNDECLARED_VARIABLE, *$1, "", "");
+            $$ = undeclared_var;
+        }
     }
     //Don't implement these two for P5
     | T_ID T_PERIOD T_ID
@@ -579,11 +591,13 @@ expression:
             {
                 Error::error(Error::INVALID_LEFT_OPERAND_TYPE, 
                               operator_to_string(OR), "", "");
+                $$ = new Expression(0);
             }
             else if (b == STRING)
             {
                 Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, 
                              operator_to_string(OR), "", "");
+                $$ = new Expression(0);
             }
             else
             {
@@ -604,11 +618,13 @@ expression:
             {
                 Error::error(Error::INVALID_LEFT_OPERAND_TYPE, 
                              operator_to_string(AND), "", "");
+                $$ = new Expression(0);
             }
             else if (b == STRING)
             {
                 Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, 
                              operator_to_string(AND), "", "");
+                $$ = new Expression(0);
             }
             else
             {
@@ -742,11 +758,13 @@ expression:
             {
                 Error::error(Error::INVALID_LEFT_OPERAND_TYPE, 
                              operator_to_string(MINUS), "", "");
+                $$ = new Expression(0);
             }
             else if (b == STRING)
             {
                 Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, 
                              operator_to_string(MINUS), "", "");
+                $$ = new Expression(0);
             }
             else
             {
@@ -767,11 +785,13 @@ expression:
             {
                 Error::error(Error::INVALID_LEFT_OPERAND_TYPE, 
                              operator_to_string(MULTIPLY), "", "");
+                $$ = new Expression(0);
             }
             else if (b == STRING)
             {
                 Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, 
                              operator_to_string(MULTIPLY), "", "");
+                $$ = new Expression(0);
             }
             else
             {
@@ -791,11 +811,13 @@ expression:
             {
                 Error::error(Error::INVALID_LEFT_OPERAND_TYPE, 
                              operator_to_string(MULTIPLY), "", "");
+                //$$ = new Expression(0);
             }
             else if (b == STRING)
             {
                 Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, 
                              operator_to_string(MULTIPLY), "", "");
+                //$$ = new Expression(0);
             }
             /*else if ($3->eval_int() == 0)
             {
@@ -823,11 +845,13 @@ expression:
             {
                 Error::error(Error::INVALID_LEFT_OPERAND_TYPE, 
                              "mod", "", "");
+                //$$ = new Expression(0);
             }
             else if (b != INT)
             {
                 Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, 
                              "mod", "", "");
+                //$$ = new Expression(0);
             }
             else
             {
@@ -843,23 +867,39 @@ expression:
             $$ = new Expression(MINUS, UNARY_OP, $2);
         }
         else 
+        {
             Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, 
                           operator_to_string(MINUS), "", "");
+            //$$ = new Expression(0);
+        }
     }
     | T_NOT  expression %prec UNARY_OPS
     {
+        Expression *init_expr = $2;
         int a = $2->get_type();
         if ($2 && a != 4)
         {
             $$ = new Expression(NOT, UNARY_OP, $2);
         } 
         else 
+        {
             Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, 
                          operator_to_string(NOT), "", "");
+            $$ = new Expression(0);
+        }
     }
     | math_operator T_LPAREN expression T_RPAREN
     {
-        $$ = new Expression($1, MATH_OP, $3);
+        Expression *init_expr = $3;
+        if (init_expr->get_type() == STRING)
+        //if (init_expr->eval_string() != "")
+        {
+            Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, 
+                         operator_to_string($1), "", "");
+            $$ = new Expression(0);
+        }
+        else
+            $$ = new Expression($1, MATH_OP, $3);
     }
     | variable geometric_operator variable
     ;

@@ -1,5 +1,8 @@
 #include "variable.h"
 
+Variable::Variable(Symbol *s)
+{
+}
 Variable::Variable(string var_name, Gpl_type gpl_type, Symbol *sym)
 {
     m_var_name = var_name;

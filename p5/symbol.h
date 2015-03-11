@@ -9,6 +9,7 @@ class Symbol
 {
     public:
       Symbol();
+      Symbol(string, int);
       Symbol(string var_name);
       Symbol(Gpl_type gpl_type, string var_name, int val);
       Symbol(Gpl_type gpl_type, string var_name, double val);

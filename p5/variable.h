@@ -12,6 +12,7 @@ using namespace std;
 class Variable
 {
     public:
+        Variable(Symbol *);
         Variable(string var_name, Gpl_type gpl_type, Symbol*);
         Variable(string var_name, Gpl_type gpl_type, Symbol*, 
                  Expression *index_expr);
