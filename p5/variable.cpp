@@ -16,10 +16,6 @@ Variable::Variable(string var_name, Gpl_type gpl_type, Symbol *sym,  Expression 
     m_sym = sym;
     m_index_expr = index_expr;
 }
-void Variable::set_value()
-{
-
-}
 int Variable::get_int_value()
 {
     return m_sym->getInt();

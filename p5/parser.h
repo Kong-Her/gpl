@@ -25,6 +25,7 @@
 //   of "string"
 
 #include <string>
+#include <cassert>
 #include "symbol.h"
 #include "symbol_table.h"
 #include "gpl_type.h"

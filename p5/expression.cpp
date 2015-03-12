@@ -31,7 +31,7 @@ Expression::Expression(Variable *var, Kind kind)
     m_var = var;
     m_kind = kind;
 
-    if(var)
+    if (var)
     {
         int var_type = var->get_var_type();
 
@@ -58,17 +58,23 @@ Expression::Expression(Operator_type op, Kind kind, Expression *left, Expression
     m_left = left;
     m_right = right; 
 
-    if (left && right)
+    if (kind == LOGICAL_OP)
     {
-        int left_type = 0, right_type = 0, both;
-        
         if (op == AND || op == OR || op == EQUAL || 
             op == NOT_EQUAL || op == GREATER_THAN || op == LESS_THAN || 
-            op == LESS_THAN_EQUAL || op == GREATER_THAN_EQUAL || op == MOD)
+            op == LESS_THAN_EQUAL || op == GREATER_THAN_EQUAL)
         {
             m_type = INT;
         }
-        else if (op == PLUS)
+    }
+    else if (kind == BINARY_OP)
+    {
+        int left_type = 0, right_type = 0, both;
+        if (op == MOD)
+        {
+            m_type = INT;
+        }
+        if (op == PLUS)
         {
             if (left->m_var || right->m_var)
             {
@@ -147,10 +153,6 @@ Expression::Expression(Operator_type op, Kind kind, Expression *left, Expression
         }
         else if (op == MINUS || op == MULTIPLY || op == DIVIDE)
         {
-            /*left_type = left->get_type();
-            right_type = right->get_type();
-            both = (left_type|right_type);*/
-
             if (left->get_type() == INT && right->get_type() == INT)
             {
                 m_type = INT;
@@ -169,34 +171,43 @@ Expression::Expression(Operator_type op, Kind kind, Expression *left)
     m_kind = kind;
     m_left = left;
 
-    if (left)
-    {
+        int left_type = left->get_type();
         if (kind == MATH_OP)
         {
             if (op == RANDOM || op == FLOOR)
             {
                 m_type = INT;
             }
-            else 
+            else if (op == ABS)
+            {
+                if (left_type == INT)
+                {
+                    m_type = INT;
+                }
+                else
+                    m_type = DOUBLE;
+            }
+            else
                 m_type = DOUBLE;
         }
-        else if (op == NOT)
+        else if (kind == UNARY_OP)
         {
-            m_type = INT;
-        }
-        else if (op == UNARY_MINUS)
-        {
-            int left_type = left->get_type();
-            if (left_type == INT)
+            if (op == NOT)
             {
                 m_type = INT;
             }
-            else if (left_type == DOUBLE)
+            if (op == MINUS)
             {
-                m_type = DOUBLE;
+                if (left_type == INT)
+                {
+                    m_type = INT;
+                }
+                else 
+                {
+                    m_type = DOUBLE;
+                }
             }
         }
-    }
 }
 /*********************************************************************************/
 int Expression::eval_int()
@@ -249,15 +260,20 @@ int Expression::eval_int()
                 return eval_double();
         }
     }
-    if (m_kind == LOGICAL_OP)
+    else if (m_kind == LOGICAL_OP)
     {
+        int a, b, c;
+        a = m_left->get_type();
+        b = m_right->get_type();
+        c = (a|b);
+
         if (m_op == LESS_THAN)
         {
-            if (m_type == INT)
+            if (c == INT)
             {
                 return m_left->eval_int() < m_right->eval_int();
             }
-            else if (m_type == DOUBLE)
+            else if (c == DOUBLE || c == (INT|DOUBLE))
             {
                 return m_left->eval_double() < m_right->eval_double();
             }
@@ -273,11 +289,11 @@ int Expression::eval_int()
         }
         if (m_op == GREATER_THAN)
         {
-            if (m_type == INT)
+            if (c == INT)
             {
                 return m_left->eval_int() > m_right->eval_int();
             }
-            else if (m_type == DOUBLE)
+            else if (c == DOUBLE || c == (INT|DOUBLE))
             {
                 return m_left->eval_double() > m_right->eval_double();
             }
@@ -293,11 +309,11 @@ int Expression::eval_int()
         }
         if (m_op == LESS_THAN_EQUAL)
         {
-            if (m_type == INT)
+            if (c == INT)
             {
                 return m_left->eval_int() <= m_right->eval_int();
             }
-            else if (m_type == DOUBLE)
+            else if (c == DOUBLE || c == (INT|DOUBLE))
             {
                 return m_left->eval_double() <= m_right->eval_double();
             }
@@ -313,11 +329,11 @@ int Expression::eval_int()
         }
         if (m_op == GREATER_THAN_EQUAL)
         {
-            if (m_type == INT)
+            if (c == INT)
             {
                 return m_left->eval_int() >= m_right->eval_int();
             }
-            else if (m_type == DOUBLE)
+            else if (c == DOUBLE || c == (INT|DOUBLE))
             {
                 return m_left->eval_double() >= m_right->eval_double();
             }
@@ -333,11 +349,11 @@ int Expression::eval_int()
         }
         if (m_op == EQUAL)
         {
-            if (m_type == INT)
+            if (c == INT)
             {
                 return m_left->eval_int() == m_right->eval_int();
             }
-            else if (m_type == DOUBLE)
+            else if (c == DOUBLE || c == (INT|DOUBLE))
             {
                 return m_left->eval_double() == m_right->eval_double();
             }
@@ -353,11 +369,11 @@ int Expression::eval_int()
         }
         if (m_op == NOT_EQUAL)
         {
-            if (m_type == INT)
+            if (c == INT)
             {
                 return m_left->eval_int() != m_right->eval_int();
             }
-            else if (m_type == DOUBLE)
+            else if (c == DOUBLE || c == (INT|DOUBLE))
             {
                 return m_left->eval_double() != m_right->eval_double();
             }
@@ -373,56 +389,56 @@ int Expression::eval_int()
         }
         if (m_op == AND)
         {
-            //if (m_type == INT)
-            //{
-                return m_left->eval_double() && m_right->eval_double();
-            //}
-            /*else if (m_type == DOUBLE)
+            if (c == INT)
             {
                 return m_left->eval_double() && m_right->eval_double();
-            }*/
+            }
+            else 
+            {
+                return m_left->eval_double() && m_right->eval_double();
+            }
         }
         if (m_op == OR)
         {
-            if (m_type == INT)
+            if (c == INT)
             {
                 return m_left->eval_int() || m_right->eval_int();
             }
-            else if (m_type == DOUBLE)
+            else 
             {
                 return m_left->eval_double() || m_right->eval_double();
             }
         }
     }
-    if (m_kind == UNARY_OP)
+    else if (m_kind == UNARY_OP)
     {
         if (m_op == MINUS)
         {
-            /*if (m_type == INT)
-            {*/
+            if (m_type == INT)
+            {
                 int val = m_left->eval_int();
                 return -val;
-            //}
-            /*else
+            }
+            else
             {
                 double val = m_left->eval_double();
                 return -val;
-            }*/
+            }
         }
         if (m_op == NOT)
         {
             return !(m_left->eval_double());
         }
     }
-    if (m_kind == TRUE)
+    else if (m_kind == TRUE)
     {
         return 1;
     }
-    if (m_kind == FALSE)
+    else if (m_kind == FALSE)
     {
         return 0;
     }
-    if (m_kind == MATH_OP)
+    else if (m_kind == MATH_OP)
     {
         if (m_op == RANDOM)
         {
@@ -432,14 +448,18 @@ int Expression::eval_int()
         {
             return abs(m_left->eval_double());
         }
+        else if (m_op == FLOOR)
+        {
+            return floor(m_left->eval_double());
+        }
         else
             return m_left->eval_double();
     }
-    if (m_kind == VARIABLE) 
+    else if (m_kind == VARIABLE) 
     {
         return m_var->get_int_value(); 
     }
-    if (m_kind == INT_CONST)
+    else if (m_kind == INT_CONST)
     {
         return m_int_val;
     }
@@ -452,7 +472,7 @@ double Expression::eval_double()
     {
         return eval_int();
     }
-    if (m_kind == BINARY_OP)
+    else if (m_kind == BINARY_OP)
     {
         if (m_op == PLUS)
         {
@@ -499,13 +519,12 @@ double Expression::eval_double()
             }   
         }
     }
-    if (m_kind == LOGICAL_OP)
+    else if (m_kind == LOGICAL_OP)
     {
         return eval_int();
     }
-    if (m_kind == UNARY_OP)
+    else if (m_kind == UNARY_OP)
     {
-        //maybe I just need to call eval_int, it handle it?
         if (m_op == NOT)
         {
             return !(m_left->eval_double());
@@ -516,7 +535,7 @@ double Expression::eval_double()
             return -val;
         }
     }
-    if (m_kind == MATH_OP)
+    else if (m_kind == MATH_OP)
     {
         if (m_op == SIN)
         {
@@ -560,19 +579,19 @@ double Expression::eval_double()
             return rand() % value;
         }
     }
-    if (m_kind == TRUE)
+    else if (m_kind == TRUE)
     {
         return eval_int();
     }
-    if (m_kind == FALSE)
+    else if (m_kind == FALSE)
     {
         return eval_int();
     }
-    if (m_kind == VARIABLE)
+    else if (m_kind == VARIABLE)
     {
         return m_var->get_double_value();
     }
-    if (m_kind == DOUBLE_CONST)
+    else if (m_kind == DOUBLE_CONST)
     {
         return m_double_val;
     }
@@ -587,7 +606,6 @@ string Expression::eval_string()
 
     if (m_type == INT)
     {
-        //int value = m_left->eval_int();
         int value = eval_int();
         convert << value;
         str = convert.str();
@@ -596,9 +614,8 @@ string Expression::eval_string()
         convert.str(string());
         return tmp;
     }
-    if (m_type == DOUBLE)
+    else if (m_type == DOUBLE)
     {
-        //double value = m_left->eval_double();
         double value = eval_double();
         convert << value;
         str = convert.str();
@@ -607,7 +624,7 @@ string Expression::eval_string()
         convert.str(string());
         return tmp;
     }
-    if (m_kind == UNARY_OP)
+    else if (m_kind == UNARY_OP)
     {
         int value;
         value = eval_int();
@@ -618,29 +635,38 @@ string Expression::eval_string()
         convert.str(string());
         return tmp;
     }
-    if (m_kind == BINARY_OP)
+    else if (m_kind == BINARY_OP)
     {
-        //if (m_op == PLUS)
-        //{
-            /*if (m_type == INT)
+        if (m_op == PLUS)
+        {
+            if (m_type == INT)
             {
                 int value;
                 value = m_left->eval_int() + m_right->eval_int();
                 convert << value;
+                str = convert.str();
+                tmp = str;
+                convert.clear();
+                convert.str(string());
+                return tmp;
             }
             else if (m_type == DOUBLE)
             {
                 double value;
                 value = m_left->eval_double() + m_right->eval_double();
                 convert << value;
+                tmp = str;
+                convert.clear();
+                convert.str(string());
+                return tmp;
             }
             else  
-            {*/
+            {
                 return m_left->eval_string() + m_right->eval_string();
-            //}
-        //}
+            }
+        }
     }
-    if (m_kind == MATH_OP)
+    else if (m_kind == MATH_OP)
     {
         if (m_type == INT)
         {
@@ -658,7 +684,7 @@ string Expression::eval_string()
         convert.str(string());
         return tmp;
     }
-    if (m_kind == LOGICAL_OP)
+    else if (m_kind == LOGICAL_OP)
     {
         int value = eval_int();
         convert << value;
@@ -668,11 +694,11 @@ string Expression::eval_string()
         convert.str(string());
         return tmp;  
     }
-    if (m_kind == STRING_CONST)
+    else if (m_kind == STRING_CONST)
     {
         return m_string_val;
     }
-    if (m_kind == VARIABLE)
+    else if (m_kind == VARIABLE)
     {
         return m_var->get_string_value();
     }

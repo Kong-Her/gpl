@@ -16,7 +16,6 @@ class Variable
         Variable(string var_name, Gpl_type gpl_type, Symbol*);
         Variable(string var_name, Gpl_type gpl_type, Symbol*, 
                  Expression *index_expr);
-        void set_value();
         int get_int_value();
         double get_double_value();
         string get_string_value();
