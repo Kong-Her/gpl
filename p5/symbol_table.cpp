@@ -48,15 +48,13 @@ void Symbol_table::print(ostream &os)
 }
 Symbol *Symbol_table::lookup(string name)
 {
-    Symbol *tmp = NULL;
-
     map<string, Symbol*>::iterator it;
     for (it = sym_table.begin(); it != sym_table.end(); it++)
     {
         if (it->first == name)
         {
-            tmp = it->second;
+            return it->second;
         }
     }
-    return tmp;
+    return NULL;
 }

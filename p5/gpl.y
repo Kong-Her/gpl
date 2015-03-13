@@ -194,7 +194,7 @@ variable_declaration:
                 
             if (init_expr != NULL)
             {
-                if (init_expr->get_type() != INT)
+                if (init_expr->get_type() == STRING || init_expr->get_type() == DOUBLE)
                 {
                     Error::error(Error::INVALID_TYPE_FOR_INITIAL_VALUE, *$2, "", "");
                 }
@@ -203,7 +203,6 @@ variable_declaration:
                     int_value = init_expr->eval_int();
 	            new_symbol = new Symbol($1, *$2, int_value);
                 }
-                //else Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, *$2, "", "");
             }
             else 
                 new_symbol = new Symbol($1, *$2, 0);
@@ -236,7 +235,6 @@ variable_declaration:
             }
             else 
                 new_symbol = new Symbol($1, *$2, "");
-                //else Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, *$2, "", "");
             
 	}
 	if (!symbol_table->insert(new_symbol, *$2, false))
@@ -255,91 +253,56 @@ variable_declaration:
         double double_value;
         //string string_value;
 
-        //if (init_expr->get_type() == DOUBLE)
-        /*if (init_expr->get_type() != INT)
+        if (init_expr->get_type() == STRING)
         {
-            double_value = init_expr->eval_double();
-            str << double_value;
-            Error::error(Error::INVALID_ARRAY_SIZE, *$2,
-                         str.str(), "");
-	    str.clear();
-	    str.str(string());
-        }*/
-        //else if (init_expr->get_type() == STRING)
-        //{
-            //string_value = init_expr->eval_string();
-            /*if (init_expr->get_op_type() > 0)
+            string st = init_expr->eval_string();
+            Error::error(Error::INVALID_ARRAY_SIZE, *$2, st, ""); 
+        }
+        else if (init_expr->get_type() == DOUBLE)
+        {
+            double db = init_expr->eval_double();
+            str << db;
+            Error::error(Error::INVALID_ARRAY_SIZE, *$2, str.str(), ""); 
+        }
+        else 
+        {
+            int_value = init_expr->eval_int();
+            if (int_value == 0)
             {
-                Error::error(Error::INVALID_ARRAY_SIZE, *$2,
-                             string_value, "");
+                Error::error(Error::INVALID_ARRAY_SIZE, *$2, 
+                              "0", ""); 
             }
             else
-                Error::error(Error::INVALID_ARRAY_SIZE, *$2, 
-                             string_value, "");*/
-       // }
-        /*else if (init_expr == NULL)
-        {
-            Error::error(Error::INVALID_ARRAY_SIZE, *$2, init_expr->eval_string(), "");
-            //Error::error(Error::INVALID_TYPE_FOR_INITIAL_VALUE, "", "", "");
-        }
-        else if (int_value == 0)
-        {
-            Error::error(Error::INVALID_ARRAY_SIZE, *$2, "0", ""); 
-        }*/
-        //else 
-        //{
-            int_value = init_expr->eval_int();
-            //if (int_value == 0)
-            if (init_expr->get_type() == STRING)
             {
-                string st = init_expr->eval_string();
-                Error::error(Error::INVALID_ARRAY_SIZE, *$2, st, ""); 
-            }
-            else if (init_expr->get_type() == DOUBLE)
-            {
-                double db = init_expr->eval_double();
-                str << db;
-                Error::error(Error::INVALID_ARRAY_SIZE, *$2, str.str(), ""); 
-            }
-            else 
-            {
-                if (init_expr->eval_int() == 0)
+                for (int i = 0; i < int_value; i++)
                 {
-                    Error::error(Error::INVALID_ARRAY_SIZE, *$2, 
-                                 "0", ""); 
-                }
-                else
-                {
-                    for (int i = 0; i < int_value; i++)
+                    if ($1 == INT)
                     {
-                        if ($1 == INT)
-                        {
-                            str << *$2 << "[" << i << "]";
-                            new_symbol = new Symbol($1, *$2, 0);
-                        }
-                        else if ($1 == DOUBLE)
-                        {
-                            str << *$2 << "[" << i << "]";
-                            new_symbol = new Symbol($1, *$2, 0);
-                        }
-                        else if ($1 == STRING)
-                        {
-                            str << *$2 << "[" << i << "]";
-                            new_symbol = new Symbol($1, *$2, "");
-                        }
-                        if (!symbol_table->insert(new_symbol, *$2, yes))
-                        {
-                            Error::error(Error::PREVIOUSLY_DECLARED_VARIABLE, 
-                                         *$2, "", "");
-                        }
-                        yes = true;
-	                //clear ostringstream str so it won't add on to the string
-	                str.clear();
-	                str.str(string());
+                        str << *$2 << "[" << i << "]";
+                        new_symbol = new Symbol($1, str.str(), 0);
                     }
+                    else if ($1 == DOUBLE)
+                    {
+                        str << *$2 << "[" << i << "]";
+                        new_symbol = new Symbol($1, str.str(), 0);
+                    }
+                    else if ($1 == STRING)
+                    {
+                        str << *$2 << "[" << i << "]";
+                        new_symbol = new Symbol($1, str.str(), "");
+                    }
+                    if (!symbol_table->insert(new_symbol, *$2, yes))
+                    {
+                        Error::error(Error::PREVIOUSLY_DECLARED_VARIABLE, 
+                                      *$2, "", "");
+                    }
+                    yes = true;
+	            //clear ostringstream str so it won't add on to the string
+	            str.clear();
+	            str.str(string());
                 }
             }
-       // }
+        }
     }
     ;
 
@@ -563,9 +526,9 @@ variable:
         ostringstream convert;
         int expr_val = 0;
 
-        convert << *$1 << "[0]";
-        tmp = convert.str();
-        Symbol *sym = symbol_table->lookup(tmp);
+        //convert << *$1 << "[0]";
+        //tmp = convert.str();
+        Symbol *sym = symbol_table->lookup(*$1);
       
         if (init_expr->get_type() == STRING)
         {
@@ -579,20 +542,26 @@ variable:
                          *$1, "A double expression", "");
             $$ = undeclared_var;
         }
-        else if (sym != NULL)
+        else if (sym == NULL)
+        {
+            Error::error(Error::UNDECLARED_VARIABLE, *$1, "", "");
+            $$ = undeclared_var;
+        }
+        else if (init_expr->eval_int() < 0)
+        {
+            Error::error(Error::INVALID_ARRAY_SIZE, *$1, "", "");
+            $$ = undeclared_var;
+        }
+        else
         {
             /*expr_val = init_expr->eval_int();
-            if (expr_val <= 0)
+            if (expr_val < 0)
             {
                 Error::error(Error::INVALID_ARRAY_SIZE, *$1, "", "");
             }
             else*/
+                
                 $$ = new Variable(*$1, sym->getType(), sym, init_expr);
-        }
-        else
-        {
-            Error::error(Error::UNDECLARED_VARIABLE, *$1, "", "");
-            $$ = undeclared_var;
         }
     }
     //Don't implement these two for P5
@@ -926,14 +895,11 @@ expression:
                              operator_to_string(MULTIPLY), "", "");
                 $$ = new Expression(0);
             }
-            /*else if ($3->eval_int() == 0)
-            {
-                Error::error(Error::DIVIDE_BY_ZERO_AT_PARSE_TIME, "", "", "");
-            }
             else if ($3->eval_double() == 0)
             {
                 Error::error(Error::DIVIDE_BY_ZERO_AT_PARSE_TIME, "", "", "");
-            }*/
+                $$ = new Expression(0);
+            }
             else
             {
                 $$ = new Expression(DIVIDE, BINARY_OP, $1, $3);
@@ -943,45 +909,32 @@ expression:
     | expression T_MOD expression 
     {
         int a, b, c;
-        if ($1 == NULL)
+        if ($1->get_type()  != INT)
         {
             Error::error(Error::INVALID_LEFT_OPERAND_TYPE, 
-                         "greater than", "", "");
+                         "mod", "", "");
             $$ = new Expression(0);
         }
-        else if ($3 == NULL)
+        else if ($3->get_type() != INT)
         {
             Error::error(Error::INVALID_RIGHT_OPERAND_TYPE,
-                         "less than", "", ""); 
+                         "mod", "", "");
+            $$ = new Expression(0);
+        }
+        else if ($3->eval_int() == 0)
+        {
+            Error::error(Error::MOD_BY_ZERO_AT_PARSE_TIME, "", "", "");
             $$ = new Expression(0);
         }
         else
         {
-            a = $1->get_type();
-            b = $3->get_type();
-            c = a|b;
-            if (a != INT)
-            {
-                Error::error(Error::INVALID_LEFT_OPERAND_TYPE, 
-                             "mod", "", "");
-                $$ = new Expression(0);
-            }
-            else if (b != INT)
-            {
-                Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, 
-                             "mod", "", "");
-                $$ = new Expression(0);
-            }
-            else
-            {
-                $$ = new Expression(MOD, BINARY_OP, $1, $3);
-            }
+            $$ = new Expression(MOD, BINARY_OP, $1, $3);
         }
     }
     | T_MINUS  expression %prec UNARY_OPS
     {
         int a = $2->get_type();
-        if ($2 && a != 4)
+        if (a != STRING)
         {
             $$ = new Expression(MINUS, UNARY_OP, $2);
         }

@@ -27,6 +27,7 @@ class Expression
         double eval_double();
         string eval_string();
         int get_type();
+        Kind get_kind();
         Operator_type get_op_type();
 
     private:

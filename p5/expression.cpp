@@ -655,6 +655,7 @@ string Expression::eval_string()
                 double value;
                 value = m_left->eval_double() + m_right->eval_double();
                 convert << value;
+                str = convert.str();
                 tmp = str;
                 convert.clear();
                 convert.str(string());
@@ -712,4 +713,8 @@ int Expression::get_type()
 Operator_type Expression::get_op_type()
 {
     return m_op;
+}
+Kind Expression::get_kind()
+{
+    return m_kind;
 }
