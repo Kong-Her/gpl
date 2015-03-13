@@ -2,6 +2,7 @@
 
 Variable::Variable(Symbol *s)
 {
+  m_sym = s;
 }
 Variable::Variable(string var_name, Gpl_type gpl_type, Symbol *sym)
 {

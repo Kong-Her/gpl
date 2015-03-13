@@ -189,9 +189,6 @@ variable_declaration:
 
         if ($1 == INT)
 	{
-            int_value = init_expr->eval_int();
-            double_value = init_expr->eval_double();
-                
             if (init_expr != NULL)
             {
                 if (init_expr->get_type() == STRING || init_expr->get_type() == DOUBLE)
@@ -237,7 +234,7 @@ variable_declaration:
                 new_symbol = new Symbol($1, *$2, "");
             
 	}
-	if (!symbol_table->insert(new_symbol, *$2, false))
+	if (!symbol_table->insert(new_symbol, *$2))
 	{
 	    Error::error(Error::PREVIOUSLY_DECLARED_VARIABLE, *$2, "", "");
 	}
@@ -246,7 +243,6 @@ variable_declaration:
     | simple_type  T_ID  T_LBRACKET expression T_RBRACKET
     {
         Expression *init_expr = $4;
-	bool yes = false;
 	Symbol *new_symbol;
 	ostringstream str;
         int int_value = 0;
@@ -291,12 +287,11 @@ variable_declaration:
                         str << *$2 << "[" << i << "]";
                         new_symbol = new Symbol($1, str.str(), "");
                     }
-                    if (!symbol_table->insert(new_symbol, *$2, yes))
+                    if (!symbol_table->insert(new_symbol, *$2))
                     {
                         Error::error(Error::PREVIOUSLY_DECLARED_VARIABLE, 
                                       *$2, "", "");
                     }
-                    yes = true;
 	            //clear ostringstream str so it won't add on to the string
 	            str.clear();
 	            str.str(string());
@@ -827,40 +822,25 @@ expression:
     | expression T_ASTERISK expression 
     {
         int a, b, c;
-        if ($1 == NULL)
+        a = $1->get_type();
+        b = $3->get_type();
+        c = a|b;
+
+        if (a == STRING) 
         {
             Error::error(Error::INVALID_LEFT_OPERAND_TYPE, 
-                         "multiply", "", "");
+                         operator_to_string(MULTIPLY), "", "");
             $$ = new Expression(0);
         }
-        else if ($3 == NULL)
+        else if (b == STRING)
         {
-            Error::error(Error::INVALID_RIGHT_OPERAND_TYPE,
-                         "multiply", "", ""); 
+            Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, 
+                         operator_to_string(MULTIPLY), "", "");
             $$ = new Expression(0);
         }
         else
         {
-            a = $1->get_type();
-            b = $3->get_type();
-            c = a|b;
-
-            if (a == STRING) 
-            {
-                Error::error(Error::INVALID_LEFT_OPERAND_TYPE, 
-                             operator_to_string(MULTIPLY), "", "");
-                $$ = new Expression(0);
-            }
-            else if (b == STRING)
-            {
-                Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, 
-                             operator_to_string(MULTIPLY), "", "");
-                $$ = new Expression(0);
-            }
-            else
-            {
-                $$ = new Expression(MULTIPLY, BINARY_OP, $1, $3);
-            }
+            $$ = new Expression(MULTIPLY, BINARY_OP, $1, $3);
         }
     }
     | expression T_DIVIDE expression 

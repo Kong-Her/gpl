@@ -9,7 +9,7 @@ class Symbol_table
 {
     public:
 	static Symbol_table *instance();
-        bool insert(Symbol*, string actual_name, bool yes);
+        bool insert(Symbol*, string actual_name);
 	void print(ostream &os);
         Symbol *lookup(string name);
 

@@ -8,17 +8,13 @@
 	m_instance = new Symbol_table();
     return m_instance;
 }
-bool Symbol_table::insert(Symbol *sym, string actual_name, bool yes)
+bool Symbol_table::insert(Symbol *sym, string actual_name)
 {
     //check to see if id is used yet
-    if (sym_table.find(actual_name) == sym_table.end() && !yes) 
+    if (sym_table.find(actual_name) == sym_table.end())// && !yes) 
     {
-	sym_table[actual_name] = sym;
-	return true;
-    }
-    if (yes)
-    {
-	sym_table[sym->getId()] = sym;
+        string str = sym->getId();
+	sym_table[str] = sym;
 	return true;
     }
     else
