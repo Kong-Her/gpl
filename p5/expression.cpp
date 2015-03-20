@@ -5,6 +5,7 @@ Expression::Expression(int dummie)
 {
     m_dummie = dummie;
 }
+/*********************************************************************************/
 Expression::Expression(int val, Kind kind)
 {
     m_int_val = val;
@@ -76,7 +77,7 @@ Expression::Expression(Operator_type op, Kind kind, Expression *left, Expression
         }
         if (op == PLUS)
         {
-            if (left->m_var || right->m_var)
+            /*if (left->m_var || right->m_var)
             {
                 if (left->m_var)
                 {
@@ -84,6 +85,7 @@ Expression::Expression(Operator_type op, Kind kind, Expression *left, Expression
                     
                     if(right->m_var)
                     {
+                        //both left and right are variables
                         right_type = right->m_var->get_var_type();
                         both = (left_type|right_type);
                         
@@ -102,6 +104,7 @@ Expression::Expression(Operator_type op, Kind kind, Expression *left, Expression
                     }
                     else
                     {
+                        //left is a variable, right is a constant
                         right_type = right->get_type();
                         both = (left_type|right_type);
                         if (both == INT)
@@ -120,6 +123,7 @@ Expression::Expression(Operator_type op, Kind kind, Expression *left, Expression
                 }
                 else
                 {
+                    //left is a constant, right is a variable
                     left_type = left->get_type();
                     right_type = right->m_var->get_var_type();
                     both = (left_type|right_type);
@@ -138,7 +142,7 @@ Expression::Expression(Operator_type op, Kind kind, Expression *left, Expression
                     }
                 }
             }
-            else if (left->get_type() == STRING || right->get_type() == STRING)
+            else*/ if (left->get_type() == STRING || right->get_type() == STRING)
             {
                 m_type = STRING;
             }
@@ -663,6 +667,13 @@ string Expression::eval_string()
             }
             else  
             {
+                // string str1, str2;
+                // str1 = m_left->eval_string();
+                // str2 = m_right->eval_string();
+                // convert << str1 << str2;
+                // str = convert.str();
+                // tmp = str;
+                // return tmp;
                 return m_left->eval_string() + m_right->eval_string();
             }
         }

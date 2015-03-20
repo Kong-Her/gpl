@@ -11,7 +11,7 @@
 bool Symbol_table::insert(Symbol *sym, string actual_name)
 {
     //check to see if id is used yet
-    if (sym_table.find(actual_name) == sym_table.end())// && !yes) 
+    if (sym_table.find(actual_name) == sym_table.end())
     {
         string str = sym->getId();
 	sym_table[str] = sym;

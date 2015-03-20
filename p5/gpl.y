@@ -194,6 +194,7 @@ variable_declaration:
                 if (init_expr->get_type() == STRING || init_expr->get_type() == DOUBLE)
                 {
                     Error::error(Error::INVALID_TYPE_FOR_INITIAL_VALUE, *$2, "", "");
+                    new_symbol = new Symbol($1, *$2, 0);
                 }
                 else
                 {
@@ -212,6 +213,7 @@ variable_declaration:
                 {
                     Error::error(Error::INVALID_TYPE_FOR_INITIAL_VALUE,
                                  *$2, "", "");
+                    new_symbol = new Symbol($1, *$2, 0);
                 }
                 else
                 {
@@ -291,6 +293,9 @@ variable_declaration:
                     {
                         Error::error(Error::PREVIOUSLY_DECLARED_VARIABLE, 
                                       *$2, "", "");
+                        //use break so it doesn't print all the errors 
+                        //for each of the arrays
+                        break;
                     }
 	            //clear ostringstream str so it won't add on to the string
 	            str.clear();
@@ -549,12 +554,12 @@ variable:
         }
         else
         {
-            /*expr_val = init_expr->eval_int();
+            expr_val = init_expr->eval_int();
             if (expr_val < 0)
             {
                 Error::error(Error::INVALID_ARRAY_SIZE, *$1, "", "");
             }
-            else*/
+            else
                 
                 $$ = new Variable(*$1, sym->getType(), sym, init_expr);
         }
@@ -943,6 +948,7 @@ expression:
     | math_operator T_LPAREN expression T_RPAREN
     {
         Expression *init_expr = $3;
+
         if (init_expr->get_type() == STRING)
         //if (init_expr->eval_string() != "")
         {

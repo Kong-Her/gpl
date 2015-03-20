@@ -6,11 +6,10 @@
 #include <string>
 #include <cmath>
 #include "parser.h"
-//#include "gpl_type.h"
 class Variable;
 using namespace std;
 
-enum Kind { INT_CONST, DOUBLE_CONST, STRING_CONST, VARIABLE,
+enum Kind { INT_CONST, DOUBLE_CONST, STRING_CONST, VARIABLE, ARRAY,
             MATH_OP, LOGICAL_OP, BINARY_OP, UNARY_OP, TRUE, FALSE };
 
 class Expression
