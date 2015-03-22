@@ -6,7 +6,6 @@ Symbol::Symbol()
 Symbol::Symbol(string s, int i)
 {
     m_strVal = s;
-    m_iVal = i;
 }
 Symbol::Symbol(string var_name)
 {

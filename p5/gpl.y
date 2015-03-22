@@ -147,16 +147,16 @@ Symbol_table *symbol_table = Symbol_table::instance();
 %token T_ERROR               "error"
 
 //precedence
-%nonassoc UNARY_OPS
 %nonassoc IF_NO_ELSE
 %left T_ELSE
 %left T_OR 
 %left T_AND 
-%left T_NOT
 %left T_EQUAL T_NOT_EQUAL 
 %left T_GREATER_EQUAL T_LESS_EQUAL T_GREATER T_LESS 
 %left T_PLUS T_MINUS
 %left T_ASTERISK T_DIVIDE T_MOD
+%right T_NOT
+%nonassoc UNARY_OPS
 
 %% // indicates the start of the rules
 
@@ -508,7 +508,10 @@ assign_statement:
 variable:
     T_ID
     {
+        ostringstream ost;
+        ost << *$1 << "[0]";
         Symbol *sym = symbol_table->lookup(*$1);
+        Symbol *sym2 = symbol_table->lookup(ost.str());
         if (sym == NULL)
         {
             Error::error(Error::UNDECLARED_VARIABLE, *$1, "", "");
@@ -522,18 +525,36 @@ variable:
     | T_ID T_LBRACKET expression T_RBRACKET
     {
         Expression *init_expr = $3;
-        string tmp;
-        ostringstream convert;
-        int expr_val = 0;
+        string tmp, tmp2;
+        ostringstream convert, convert_val, db_to_str;
+        int expr_val = 0, index_val = 0;
 
-        //convert << *$1 << "[0]";
-        //tmp = convert.str();
-        Symbol *sym = symbol_table->lookup(*$1);
-      
-        if (init_expr->get_type() == STRING)
+        convert << *$1 << "[0]";
+        tmp = convert.str();
+        Symbol *sym = symbol_table->lookup(tmp);
+        if (sym != NULL && init_expr->get_type() == INT)
         {
-            tmp = init_expr->eval_string();
-            Error::error(Error::INVALID_ARRAY_SIZE, *$1, tmp, ""); 
+            index_val = init_expr->eval_int();
+            convert_val << *$1 << "[" << index_val << "]";
+            Symbol *sym2 = symbol_table->lookup(convert_val.str());
+            if (!sym2)
+            {
+                db_to_str << index_val;
+                tmp2 = db_to_str.str();
+                Error::error(Error::ARRAY_INDEX_OUT_OF_BOUNDS, 
+                             *$1, tmp2, "");
+                $$ = undeclared_var;
+            }
+        }
+        if (sym == NULL)
+        {
+            Error::error(Error::UNDECLARED_VARIABLE, *$1, "", "");
+            $$ = undeclared_var;
+        }
+        else if (init_expr->get_type() == STRING)
+        {
+            Error::error(Error::ARRAY_INDEX_MUST_BE_AN_INTEGER,
+                         *$1, "A string expression", "");
             $$ = undeclared_var;
         }
         else if (init_expr->get_type() == DOUBLE)
@@ -542,25 +563,15 @@ variable:
                          *$1, "A double expression", "");
             $$ = undeclared_var;
         }
-        else if (sym == NULL)
-        {
-            Error::error(Error::UNDECLARED_VARIABLE, *$1, "", "");
-            $$ = undeclared_var;
-        }
-        else if (init_expr->eval_int() < 0)
-        {
-            Error::error(Error::INVALID_ARRAY_SIZE, *$1, "", "");
-            $$ = undeclared_var;
-        }
         else
         {
             expr_val = init_expr->eval_int();
-            if (expr_val < 0)
+            if (init_expr->eval_int() < 0)
             {
                 Error::error(Error::INVALID_ARRAY_SIZE, *$1, "", "");
+                $$ = undeclared_var;
             }
             else
-                
                 $$ = new Variable(*$1, sym->getType(), sym, init_expr);
         }
     }
@@ -709,7 +720,7 @@ expression:
             $$ = new Expression(LESS_THAN, LOGICAL_OP, $1, $3);
         }
     }
-    | expression T_GREATER  expression 
+    | expression T_GREATER expression 
     {
         if ($1 == NULL)
         {
@@ -829,7 +840,6 @@ expression:
         int a, b, c;
         a = $1->get_type();
         b = $3->get_type();
-        c = a|b;
 
         if (a == STRING) 
         {
@@ -950,7 +960,6 @@ expression:
         Expression *init_expr = $3;
 
         if (init_expr->get_type() == STRING)
-        //if (init_expr->eval_string() != "")
         {
             Error::error(Error::INVALID_RIGHT_OPERAND_TYPE, 
                          operator_to_string($1), "", "");

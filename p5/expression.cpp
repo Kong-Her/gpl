@@ -1,6 +1,7 @@
 #include "expression.h"
 #include "variable.h"
 
+/*********************************************************************************/
 Expression::Expression(int dummie)
 {
     m_dummie = dummie;
@@ -70,79 +71,13 @@ Expression::Expression(Operator_type op, Kind kind, Expression *left, Expression
     }
     else if (kind == BINARY_OP)
     {
-        int left_type = 0, right_type = 0, both;
         if (op == MOD)
         {
             m_type = INT;
         }
         if (op == PLUS)
         {
-            /*if (left->m_var || right->m_var)
-            {
-                if (left->m_var)
-                {
-                    left_type = left->m_var->get_var_type();
-                    
-                    if(right->m_var)
-                    {
-                        //both left and right are variables
-                        right_type = right->m_var->get_var_type();
-                        both = (left_type|right_type);
-                        
-                        if (both == INT)
-                        {
-                            m_type = INT;
-                        }
-                        else if (both == DOUBLE || both == (INT|DOUBLE))
-                        {
-                            m_type = DOUBLE;
-                        }
-                        else
-                        {
-                            m_type = STRING;
-                        }
-                    }
-                    else
-                    {
-                        //left is a variable, right is a constant
-                        right_type = right->get_type();
-                        both = (left_type|right_type);
-                        if (both == INT)
-                        {
-                            m_type = INT;
-                        }
-                        else if (both == DOUBLE || both == (INT|DOUBLE))
-                        {
-                            m_type = DOUBLE;
-                        }
-                        else
-                        {
-                            m_type = STRING;
-                        }
-                    }
-                }
-                else
-                {
-                    //left is a constant, right is a variable
-                    left_type = left->get_type();
-                    right_type = right->m_var->get_var_type();
-                    both = (left_type|right_type);
-
-                    if (both == INT)
-                    {
-                        m_type = INT;
-                    }
-                    else if (both == DOUBLE || both == (INT|DOUBLE))
-                    {
-                        m_type = DOUBLE;
-                    }
-                    else 
-                    {
-                        m_type = STRING;
-                    }
-                }
-            }
-            else*/ if (left->get_type() == STRING || right->get_type() == STRING)
+            if (left->get_type() == STRING || right->get_type() == STRING)
             {
                 m_type = STRING;
             }
@@ -420,27 +355,18 @@ int Expression::eval_int()
         {
             if (m_type == INT)
             {
-                int val = m_left->eval_int();
-                return -val;
+                return -1 * m_left->eval_int();
             }
             else
             {
-                double val = m_left->eval_double();
-                return -val;
+                return -1 * m_left->eval_double();
+
             }
         }
         if (m_op == NOT)
         {
             return !(m_left->eval_double());
         }
-    }
-    else if (m_kind == TRUE)
-    {
-        return 1;
-    }
-    else if (m_kind == FALSE)
-    {
-        return 0;
     }
     else if (m_kind == MATH_OP)
     {
@@ -464,6 +390,14 @@ int Expression::eval_int()
         return m_var->get_int_value(); 
     }
     else if (m_kind == INT_CONST)
+    {
+        return m_int_val;
+    }
+    if (m_kind == TRUE)
+    {
+        return m_int_val;
+    }
+    if (m_kind == FALSE)
     {
         return m_int_val;
     }
@@ -536,7 +470,7 @@ double Expression::eval_double()
         if (m_op == MINUS)
         {
             double val = m_left->eval_double();
-            return -val;
+            return -1 * val;
         }
     }
     else if (m_kind == MATH_OP)
@@ -667,13 +601,6 @@ string Expression::eval_string()
             }
             else  
             {
-                // string str1, str2;
-                // str1 = m_left->eval_string();
-                // str2 = m_right->eval_string();
-                // convert << str1 << str2;
-                // str = convert.str();
-                // tmp = str;
-                // return tmp;
                 return m_left->eval_string() + m_right->eval_string();
             }
         }
@@ -721,10 +648,12 @@ int Expression::get_type()
 {
    return m_type; 
 }
+/*********************************************************************************/
 Operator_type Expression::get_op_type()
 {
     return m_op;
 }
+/*********************************************************************************/
 Kind Expression::get_kind()
 {
     return m_kind;
