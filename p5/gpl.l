@@ -140,7 +140,6 @@ The right-hand-side (RHS) specifies an action (code to execute) when
 "+="            return T_PLUS_ASSIGN;
 "-="            return T_MINUS_ASSIGN;
 "++"            return T_PLUS_PLUS;
-"--"            return T_MINUS_MINUS;
 
 "*"             return T_ASTERISK;
 "/"             return T_DIVIDE;
@@ -168,7 +167,6 @@ The right-hand-side (RHS) specifies an action (code to execute) when
 "&&"            return T_AND;
 "||"            return T_OR;
 "!"             return T_NOT;
-
 
 [\/][\/].* 
 [0-9]+           get_int_value(); return T_INT_CONSTANT; 

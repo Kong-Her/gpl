@@ -151,7 +151,18 @@ Expression::Expression(Operator_type op, Kind kind, Expression *left)
 /*********************************************************************************/
 int Expression::eval_int()
 {
-    if (m_kind == BINARY_OP)
+    if (m_kind == UNARY_OP)
+    {
+        if (m_op == MINUS)
+        {
+            return -1 * m_left->eval_int();
+        }
+        if (m_op == NOT)
+        {
+            return !(m_left->eval_double());
+        }
+    }
+    else if (m_kind == BINARY_OP)
     {
         if (m_op == PLUS)
         {
@@ -349,25 +360,6 @@ int Expression::eval_int()
             }
         }
     }
-    else if (m_kind == UNARY_OP)
-    {
-        if (m_op == MINUS)
-        {
-            if (m_type == INT)
-            {
-                return -1 * m_left->eval_int();
-            }
-            else
-            {
-                return -1 * m_left->eval_double();
-
-            }
-        }
-        if (m_op == NOT)
-        {
-            return !(m_left->eval_double());
-        }
-    }
     else if (m_kind == MATH_OP)
     {
         if (m_op == RANDOM)
@@ -393,11 +385,11 @@ int Expression::eval_int()
     {
         return m_int_val;
     }
-    if (m_kind == TRUE)
+    else if (m_kind == TRUE)
     {
         return m_int_val;
     }
-    if (m_kind == FALSE)
+    else if (m_kind == FALSE)
     {
         return m_int_val;
     }

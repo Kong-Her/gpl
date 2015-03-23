@@ -186,60 +186,73 @@ variable_declaration:
         Expression *init_expr = $3;
         int int_value = 0;
         double double_value = 0;
+        ostringstream convert;
 
-        if ($1 == INT)
-	{
-            if (init_expr != NULL)
+        convert << *$2 << "[0]";
+        Symbol *sym = symbol_table->lookup(convert.str());
+        if(!sym)
+        {
+            if ($1 == INT)
             {
-                if (init_expr->get_type() == STRING || init_expr->get_type() == DOUBLE)
+                if (init_expr != NULL)
                 {
-                    Error::error(Error::INVALID_TYPE_FOR_INITIAL_VALUE, *$2, "", "");
+                    if (init_expr->get_type() == STRING || 
+                        init_expr->get_type() == DOUBLE)
+                    {
+                        Error::error(Error::INVALID_TYPE_FOR_INITIAL_VALUE, *$2, "", "");
+                        new_symbol = new Symbol($1, *$2, 0);
+                    }
+                    else
+                    {
+                        int_value = init_expr->eval_int();
+        	        new_symbol = new Symbol($1, *$2, int_value);
+                    }
+                }
+                else 
                     new_symbol = new Symbol($1, *$2, 0);
-                }
-                else
-                {
-                    int_value = init_expr->eval_int();
-	            new_symbol = new Symbol($1, *$2, int_value);
-                }
-            }
-            else 
-                new_symbol = new Symbol($1, *$2, 0);
-	}
-	else if ($1 == DOUBLE)
-	{
-            if (init_expr != NULL)
-            {
-                if (init_expr->get_type() == STRING)
-                {
-                    Error::error(Error::INVALID_TYPE_FOR_INITIAL_VALUE,
-                                 *$2, "", "");
-                    new_symbol = new Symbol($1, *$2, 0);
-                }
-                else
-                {
-                    double_value = init_expr->eval_double();
-	            new_symbol = new Symbol($1, *$2, double_value);
-                }
-            }
-            else
-                new_symbol = new Symbol($1, *$2, 0);
-	}
-	else if ($1 == STRING)
-	{
-            string string_value = "";
-            if (init_expr != NULL)
-            {
-                string_value = init_expr->eval_string();
-	        new_symbol = new Symbol($1, *$2, string_value);
-            }
-            else 
-                new_symbol = new Symbol($1, *$2, "");
-            
-	}
-	if (!symbol_table->insert(new_symbol, *$2))
-	{
-	    Error::error(Error::PREVIOUSLY_DECLARED_VARIABLE, *$2, "", "");
-	}
+        	}
+           else if ($1 == DOUBLE)
+           {
+               if (init_expr != NULL)
+               {
+                   if (init_expr->get_type() == STRING)
+                   {
+                       Error::error(Error::INVALID_TYPE_FOR_INITIAL_VALUE,
+                                    *$2, "", "");
+                       new_symbol = new Symbol($1, *$2, 0);
+                   }
+                   else
+                   {
+                       double_value = init_expr->eval_double();
+        	       new_symbol = new Symbol($1, *$2, double_value);
+                   }
+               }
+               else
+                   new_symbol = new Symbol($1, *$2, 0);
+       	   }
+           else if ($1 == STRING)
+           {
+               string string_value = "";
+               if (init_expr != NULL)
+               {
+                   string_value = init_expr->eval_string();
+        	   new_symbol = new Symbol($1, *$2, string_value);
+               }
+               else 
+                   new_symbol = new Symbol($1, *$2, "");
+           }
+        }
+        else 
+        {
+            new_symbol = NULL;
+	    convert.clear();
+	    convert.str(string());
+        }
+
+    	if (!symbol_table->insert(new_symbol, *$2))
+    	{
+    	    Error::error(Error::PREVIOUSLY_DECLARED_VARIABLE, *$2, "", "");
+    	}
 
     }
     | simple_type  T_ID  T_LBRACKET expression T_RBRACKET
