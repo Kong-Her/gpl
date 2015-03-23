@@ -228,7 +228,7 @@ variable_declaration:
                    }
                }
                else
-                   new_symbol = new Symbol($1, *$2, 0);
+                   new_symbol = new Symbol($1, *$2, 0.0);
        	   }
            else if ($1 == STRING)
            {

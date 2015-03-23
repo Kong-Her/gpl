@@ -1,11 +1,9 @@
 #include "symbol.h"
 
-Symbol::Symbol()
-{
-}
 Symbol::Symbol(string s, int i)
 {
     m_strVal = s;
+    m_gpl_type = INT;
 }
 Symbol::Symbol(string var_name)
 {

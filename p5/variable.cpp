@@ -3,6 +3,7 @@
 Variable::Variable(Symbol *s)
 {
   m_sym = s;
+  m_gpl_type = s->getType();
 }
 Variable::Variable(string var_name, Gpl_type gpl_type, Symbol *sym)
 {
