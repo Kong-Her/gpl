@@ -1,4 +1,5 @@
 #include "symbol.h"
+#include "animation_block.h"
 
 Symbol::Symbol(string s, int i)
 {
@@ -33,6 +34,12 @@ Symbol::Symbol(Gpl_type gpl_type, string var_name, Game_object *game_obj)
     m_gpl_type = GAME_OBJECT;
     m_game_obj = game_obj;
 }
+Symbol::Symbol(Gpl_type gpl_type, string var_name, Animation_block *animation)
+{
+    m_var_name = var_name;
+    m_gpl_type = ANIMATION_BLOCK;
+    m_animation_block = animation;
+}
 Game_object *Symbol::get_game_object_value()
 {
     return m_game_obj;
@@ -56,4 +63,31 @@ string Symbol::getString()
 Gpl_type Symbol::get_type()
 {
     return m_gpl_type;
+}
+bool Symbol::is_int()
+{
+    if (m_gpl_type == INT)
+    {
+        return true;
+    }
+    else
+        return false;
+}
+bool Symbol::is_double()
+{
+    if (m_gpl_type == DOUBLE)
+    {
+        return true;
+    }
+    else
+        return false;
+}
+bool Symbol::is_string()
+{
+    if (m_gpl_type == STRING)
+    {
+        return true;
+    }
+    else
+        return false;
 }

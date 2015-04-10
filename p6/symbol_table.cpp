@@ -42,7 +42,13 @@ void Symbol_table::print(ostream &os)
 	}
 	else if (it->second->get_type() == GAME_OBJECT)
         {
-
+            os << "game_object " << it->second->getId();
+            os << endl;
+            indent++;
+            os << it->second->get_game_object_value();
+            os << endl;
+            indent--;
+            //it->second->print();
         }
     }
 
@@ -59,32 +65,38 @@ Symbol *Symbol_table::lookup(string name)
     }
     return NULL;
 }
-bool Symbol_table::get_type(string var_name, Gpl_type type)
+bool Symbol_table::get(string name, int &value)
 {
-    /*if (sym_table.find(var_name) == sym_table.end())
-    {
-        string str = sym->getId();
-	sym_table[str] = sym;
-	return true;
-    }
-    else*/
-      return false;
+    Symbol *cur = lookup(name);
+    if (!cur || !cur->is_int())
+        return false;
+
+    value = cur->getInt();
+    return true;
 }
-void Symbol_table::get(string name, int size)
+bool Symbol_table::get(string name, double &value)
 {
-    if (sym_table.find(name) == sym_table.end())
-    {
-    }
+    Symbol *cur = lookup(name);
+    if (!cur || !cur->is_int())
+        return false;
+
+    value = cur->getDouble();
+    return true;
 }
-void Symbol_table::get(string name, string window_title)
+bool Symbol_table::get(string name, string &value)
 {
-    if (sym_table.find(name) == sym_table.end())
-    {
-    }
+    Symbol *cur = lookup(name);
+    if (!cur || !cur->is_int())
+        return false;
+
+    value = cur->getString();
+    return true;
 }
-void Symbol_table::set(string name, int size)
+bool Symbol_table::get_type(string name, Gpl_type &type)
 {
-    if (sym_table.find(name) == sym_table.end())
-    {
-    }
+    return false;
+}
+bool Symbol_table::set(string name, int value) // used for mouse_x, mouse_y
+{
+    return false;
 }

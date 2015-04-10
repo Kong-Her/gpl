@@ -25,6 +25,7 @@ class Expression
         int eval_int();
         double eval_double();
         string eval_string();
+        //eval_animation_block()
         int get_type();
         Kind get_kind();
         Operator_type get_op_type();

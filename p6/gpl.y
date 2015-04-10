@@ -363,6 +363,8 @@ optional_initializer:
 object_declaration:
     object_type T_ID 
     {
+        Symbol *new_symbol;
+        
         switch ($1)
         {
             case T_TRIANGLE:
@@ -381,10 +383,16 @@ object_declaration:
                 cur_object_under_construction = new Pixmap();
                 break;
         }
+        new_symbol = new Symbol(GAME_OBJECT, *$2, cur_object_under_construction);
+
+        if (!symbol_table->insert(new_symbol, *$2))
+        {
+            Error::error(Error::PREVIOUSLY_DECLARED_VARIABLE, *$2, "", "");
+        }
     }
     T_LPAREN parameter_list_or_empty T_RPAREN
     {
-        
+    
     }
     | object_type T_ID 
     {
@@ -409,8 +417,9 @@ object_declaration:
     }
     T_LBRACKET expression T_RBRACKET
     {
-        /*ostringstream st;
-        Expression *expr = $4;
+        /*Expression *expr = $4;
+        ostringstream st;
+
 
         if (expr->get_type() == DOUBLE)
         {
@@ -475,6 +484,28 @@ parameter_list :
 //---------------------------------------------------------------------
 parameter:
     T_ID T_ASSIGN expression
+    {
+        Expression *expr = $3;
+
+        //cur_object_under_construction->set_member_variable(<member name>, value);
+        if (expr->get_type() == INT)
+        {
+            int value = expr->eval_int();
+            cur_object_under_construction->set_member_variable(*$1, value);
+
+        }
+        else if (expr->get_type() == DOUBLE)
+        {
+            double value = expr->eval_double();
+            cur_object_under_construction->set_member_variable(*$1, value);
+
+        }
+        else
+        {
+            string value = expr->eval_string();
+            cur_object_under_construction->set_member_variable(*$1, value);
+        }
+    }
     ;
 
 //---------------------------------------------------------------------
