@@ -25,6 +25,7 @@ class Symbol
       string getString();
       Gpl_type get_type();
       Game_object *get_game_object_value();
+      Animation_block *get_animation_block_value();
       bool is_int();
       bool is_double();
       bool is_string();

@@ -30,6 +30,10 @@ string Variable::get_string_value()
 {
     return m_sym->getString();
 }
+Animation_block *Variable::get_animation_block()
+{
+    return m_sym->get_animation_block_value();
+}
 Gpl_type Variable::get_var_type()
 {
     return m_sym->get_type();

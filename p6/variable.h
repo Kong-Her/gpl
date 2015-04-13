@@ -5,6 +5,7 @@
 #include "expression.h"
 #include "symbol.h"
 #include "symbol_table.h"
+#include "animation_block.h"
 #include <string>
 class Expression;
 using namespace std;
@@ -19,6 +20,7 @@ class Variable
         int get_int_value();
         double get_double_value();
         string get_string_value();
+        Animation_block *get_animation_block();
         Gpl_type get_var_type();
 
     private:

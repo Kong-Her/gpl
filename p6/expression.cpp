@@ -45,9 +45,13 @@ Expression::Expression(Variable *var, Kind kind)
         {
             m_type = DOUBLE;
         }
-        else 
+        else if (var_type == STRING)
         {
             m_type = STRING;
+        }
+        else if (var_type == ANIMATION_BLOCK)
+        {
+            m_type = ANIMATION_BLOCK;
         }
     }
 
@@ -634,6 +638,13 @@ string Expression::eval_string()
         return m_var->get_string_value();
     }
     return "";
+}
+Animation_block *Expression::eval_animation_block()
+{
+    if (m_type == ANIMATION_BLOCK)
+    {
+        return m_var->get_animation_block();
+    }
 }
 /*********************************************************************************/
 int Expression::get_type()

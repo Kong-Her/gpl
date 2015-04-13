@@ -40,6 +40,10 @@ Symbol::Symbol(Gpl_type gpl_type, string var_name, Animation_block *animation)
     m_gpl_type = ANIMATION_BLOCK;
     m_animation_block = animation;
 }
+Animation_block *Symbol::get_animation_block_value()
+{
+    return m_animation_block;
+}
 Game_object *Symbol::get_game_object_value()
 {
     return m_game_obj;

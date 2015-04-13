@@ -48,8 +48,15 @@ void Symbol_table::print(ostream &os)
             os << it->second->get_game_object_value();
             os << endl;
             indent--;
-            //it->second->print();
         }
+        else if (it->second->get_type() == ANIMATION_BLOCK)
+        {
+            os << "animation_block " << it->second->getId();
+            indent++;
+            os << endl;
+            indent--;
+        }
+
     }
 
 }

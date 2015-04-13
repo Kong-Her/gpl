@@ -6,6 +6,7 @@
 #include <string>
 #include <cmath>
 #include "parser.h"
+#include "animation_block.h"
 class Variable;
 using namespace std;
 
@@ -25,7 +26,7 @@ class Expression
         int eval_int();
         double eval_double();
         string eval_string();
-        //eval_animation_block()
+        Animation_block *eval_animation_block();
         int get_type();
         Kind get_kind();
         Operator_type get_op_type();

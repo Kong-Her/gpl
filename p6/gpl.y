@@ -18,6 +18,7 @@ extern int line_count;            // current line in the input; from record.l
 #include "triangle.h"
 #include "textbox.h"
 #include "window.h"
+#include "animation_block.h"
 #include "statement_block.h"
 #include <iostream>
 #include <string>
@@ -28,6 +29,7 @@ int undeclared = 0;
 Variable *undeclared_var = new Variable(new Symbol("__undeclared", undeclared));
 Symbol_table *symbol_table = Symbol_table::instance();
 Game_object *cur_object_under_construction;
+string obj_class, obj_name;
 
 // bison syntax to indicate the end of the header
 %} 
@@ -41,6 +43,7 @@ Game_object *cur_object_under_construction;
  Operator_type  union_operator_type;
  class Expression  *union_expression; 
  class Variable *union_variable;
+ class Symbol    *union_symbol;
  class Game_object *union_game_object;
 }
 
@@ -150,7 +153,7 @@ Game_object *cur_object_under_construction;
 %type <union_expression> primary_expression
 %type <union_expression> optional_initializer
 %type <union_variable> variable
-%type <union_game_object> object_declaration
+%type <union_symbol> animation_parameter
 %type <union_int> object_type
 
 
@@ -369,18 +372,28 @@ object_declaration:
         {
             case T_TRIANGLE:
                 cur_object_under_construction = new Triangle();
+                obj_class = "Triangle";
+                obj_name = *$2;
                 break;
             case T_RECTANGLE:
                 cur_object_under_construction = new Rectangle();
+                obj_class = "Rectangle";
+                obj_name = *$2;
                 break;
             case T_CIRCLE:
                 cur_object_under_construction = new Circle();
+                obj_class = "Circle";
+                obj_name = *$2;
                 break;
             case T_TEXTBOX:
                 cur_object_under_construction = new Textbox();
+                obj_class = "Textbox";
+                obj_name = *$2;
                 break;
             case T_PIXMAP:
                 cur_object_under_construction = new Pixmap();
+                obj_class = "Pixmap";
+                obj_name = *$2;
                 break;
         }
         new_symbol = new Symbol(GAME_OBJECT, *$2, cur_object_under_construction);
@@ -400,26 +413,36 @@ object_declaration:
         {
             case T_TRIANGLE:
                 cur_object_under_construction = new Triangle();
+                obj_class = "Triangle";
+                obj_name = *$2;
                 break;
             case T_RECTANGLE:
                 cur_object_under_construction = new Rectangle();
+                obj_class = "Rectangle";
+                obj_name = *$2;
                 break;
             case T_CIRCLE:
                 cur_object_under_construction = new Circle();
+                obj_class = "Circle";
+                obj_name = *$2;
                 break;
             case T_TEXTBOX:
                 cur_object_under_construction = new Textbox();
+                obj_class = "Textbox";
+                obj_name = *$2;
                 break;
             case T_PIXMAP:
                 cur_object_under_construction = new Pixmap();
+                obj_class = "Pixmap";
+                obj_name = *$2;
                 break;
         }
     }
     T_LBRACKET expression T_RBRACKET
     {
-        /*Expression *expr = $4;
+        Expression *expr = $5;
         ostringstream st;
-
+        Symbol *new_symbol;
 
         if (expr->get_type() == DOUBLE)
         {
@@ -432,16 +455,23 @@ object_declaration:
             st << expr->eval_string();
             Error::error(Error::INVALID_ARRAY_SIZE, 
                          *$2, st.str(), "");
-        }*/
-        /*else 
+        }
+        else 
         {
             int total = expr->eval_int();
 
             for (int i = 0; i < total; i++)
             {
+                st << *$2 << "[" << i << "]";
+                new_symbol = new Symbol(GAME_OBJECT, st.str(), cur_object_under_construction);
 
+                if (!symbol_table->insert(new_symbol, *$2))
+                {
+                    Error::error(Error::PREVIOUSLY_DECLARED_VARIABLE, *$2, "", "");
+                }
             }
-        }*/
+        }
+
     }
     ;
 
@@ -486,24 +516,39 @@ parameter:
     T_ID T_ASSIGN expression
     {
         Expression *expr = $3;
+        Status status;
 
         //cur_object_under_construction->set_member_variable(<member name>, value);
         if (expr->get_type() == INT)
         {
             int value = expr->eval_int();
-            cur_object_under_construction->set_member_variable(*$1, value);
+            status = cur_object_under_construction->set_member_variable(*$1, value);
 
         }
         else if (expr->get_type() == DOUBLE)
         {
             double value = expr->eval_double();
-            cur_object_under_construction->set_member_variable(*$1, value);
+            status = cur_object_under_construction->set_member_variable(*$1, value);
 
         }
-        else
+        else if (expr->get_type() == STRING)
         {
             string value = expr->eval_string();
-            cur_object_under_construction->set_member_variable(*$1, value);
+            status = cur_object_under_construction->set_member_variable(*$1, value);
+        }
+        else if (expr->get_type() == ANIMATION_BLOCK)
+        {
+            Animation_block *ani;
+            ani = expr->eval_animation_block();
+            status = cur_object_under_construction->set_member_variable(*$1, ani);
+        }
+        if (status == MEMBER_NOT_OF_GIVEN_TYPE)
+        {
+            Error::error(Error::INCORRECT_CONSTRUCTOR_PARAMETER_TYPE, obj_name, *$1, "");   
+        }
+        if (status == MEMBER_NOT_DECLARED)
+        {
+            Error::error(Error::UNKNOWN_CONSTRUCTOR_PARAMETER, obj_class, *$1, "");
         }
     }
     ;
@@ -511,6 +556,26 @@ parameter:
 //---------------------------------------------------------------------
 forward_declaration:
     T_FORWARD T_ANIMATION T_ID T_LPAREN animation_parameter T_RPAREN
+    {
+        Symbol *sym = symbol_table->lookup(*$3);
+        Symbol *new_symbol;
+        Game_object *game;
+
+        if (sym)
+        {
+            Error::error(Error::PREVIOUSLY_DECLARED_VARIABLE, *$3, "", "");
+        }
+        else
+        {
+            Animation_block *animate = new Animation_block($5, *$3);
+            new_symbol = new Symbol(ANIMATION_BLOCK, *$3, animate);
+
+            if (!symbol_table->insert(new_symbol, *$3))
+            {
+                Error::error(Error::PREVIOUSLY_DECLARED_VARIABLE, *$3, "", "");
+            }
+        }
+    }
     ;
 
 //---------------------------------------------------------------------
@@ -539,6 +604,51 @@ animation_block:
 //---------------------------------------------------------------------
 animation_parameter:
     object_type T_ID
+    {
+        Symbol *new_symbol, *sym;
+
+        switch ($1)
+        {
+            case T_TRIANGLE:
+                cur_object_under_construction = new Triangle();
+                obj_class = "Triangle";
+                break;
+            case T_RECTANGLE:
+                cur_object_under_construction = new Rectangle();
+                obj_class = "Rectangle";
+                break;
+            case T_CIRCLE:
+                cur_object_under_construction = new Circle();
+                obj_class = "Circle";
+                break;
+            case T_TEXTBOX:
+                cur_object_under_construction = new Textbox();
+                obj_class = "Textbox";
+                break;
+            case T_PIXMAP:
+                cur_object_under_construction = new Pixmap();
+                obj_class = "Pixmap";
+                break;
+        }
+        cur_object_under_construction->never_animate();
+        cur_object_under_construction->never_draw();
+
+        sym = symbol_table->lookup(*$2);
+        if (sym)
+        {
+            Error::error(Error::ANIMATION_PARAMETER_NAME_NOT_UNIQUE, *$2, "", "");
+        }
+        else
+        {
+            new_symbol = new Symbol(GAME_OBJECT, *$2, cur_object_under_construction);
+
+            if (!symbol_table->insert(new_symbol, *$2))
+            {
+                Error::error(Error::PREVIOUSLY_DECLARED_VARIABLE, *$2, "", "");
+            }
+            $$ = new_symbol;
+        }
+    }
     ;
 
 //---------------------------------------------------------------------
