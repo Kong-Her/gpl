@@ -206,6 +206,22 @@ variable_declaration:
         convert << *$2 << "[0]";
         Symbol *sym = symbol_table->lookup(convert.str());
         
+        if ((*$2 == "window_width" || *$2 == "window_height") &&
+             init_expr->get_type() != INT)
+        {
+            string s;
+            if (init_expr->get_type() == DOUBLE)
+            {
+                s = "double";
+            }
+            else
+            {
+                s = "string";
+            }
+            Error::error(Error::INVALID_TYPE_FOR_RESERVED_VARIABLE,
+                         *$2, s, "int");
+        }
+
         if(!sym)
         {
             if ($1 == INT)
@@ -221,7 +237,7 @@ variable_declaration:
                     else
                     {
                         int_value = init_expr->eval_int();
-        	           new_symbol = new Symbol($1, *$2, int_value);
+        	            new_symbol = new Symbol($1, *$2, int_value);
                     }
                 }
                 else 
@@ -462,8 +478,12 @@ object_declaration:
 
             for (int i = 0; i < total; i++)
             {
+                string tmp;
                 st << *$2 << "[" << i << "]";
-                new_symbol = new Symbol(GAME_OBJECT, st.str(), cur_object_under_construction);
+                tmp = st.str();
+                st.clear();
+                st.str(string());
+                new_symbol = new Symbol(GAME_OBJECT, tmp, cur_object_under_construction);
 
                 if (!symbol_table->insert(new_symbol, *$2))
                 {
@@ -518,12 +538,42 @@ parameter:
         Expression *expr = $3;
         Status status;
 
-        //cur_object_under_construction->set_member_variable(<member name>, value);
-        if (expr->get_type() == INT)
+        if (*$1 == "text" || *$1 == "filename")
+        {
+            string value = expr->eval_string();
+            status = cur_object_under_construction->set_member_variable(*$1, value);
+
+        }
+        else if (*$1 == "red" || *$1 == "green" || *$1 == "blue" ||
+                 *$1 == "scew" || *$1 == "rotation")
+        {
+            if (expr->get_type() == INT || expr->get_type() == DOUBLE)
+            {
+                double value = expr->eval_double(); 
+                status = cur_object_under_construction->set_member_variable(*$1, value);
+            }
+            else
+            {
+                Error::error(Error::INCORRECT_CONSTRUCTOR_PARAMETER_TYPE, obj_name, *$1, "");
+            }
+        }
+        else if (*$1 == "w" || *$1 == "x" || *$1 == "y" || *$1 == "h" || 
+                 *$1 == "space")
+        {
+            if (expr->get_type() == INT)
+            {
+                int value = expr->eval_int();
+                status = cur_object_under_construction->set_member_variable(*$1, value);
+            }
+            else
+            {
+                Error::error(Error::INCORRECT_CONSTRUCTOR_PARAMETER_TYPE, obj_name, *$1, "");
+            }
+        }
+        else if (expr->get_type() == INT)
         {
             int value = expr->eval_int();
             status = cur_object_under_construction->set_member_variable(*$1, value);
-
         }
         else if (expr->get_type() == DOUBLE)
         {
@@ -828,7 +878,69 @@ variable:
         }
     }
     | T_ID T_PERIOD T_ID
+    {
+        ostringstream st;
+        string tmp;
+        Status status;
+        Symbol *sym1 = symbol_table->lookup(*$1);
+
+        if (sym1) 
+        {
+            if (sym1->get_type() != GAME_OBJECT)
+            {
+                Error::error(Error::LHS_OF_PERIOD_MUST_BE_OBJECT,
+                             *$1, "", "");
+                $$ = undeclared_var;
+            }
+            else
+            {
+                int val = 0;
+                Game_object *obj = sym1->get_game_object_value();
+                status = obj->get_member_variable(*$3, val);
+                $$ = new Variable(*$1, GAME_OBJECT, sym1);
+            }
+        }
+        else
+        {
+            Error::error(Error::UNDECLARED_VARIABLE, *$1, "", "");
+            $$ = undeclared_var;
+        }
+    }
     | T_ID T_LBRACKET expression T_RBRACKET T_PERIOD T_ID
+    {
+        Expression *expr = $3;
+        ostringstream st;
+
+        st << *$1 << "[0]";
+        Symbol *sym1 = symbol_table->lookup(st.str());
+
+        if (sym1->get_type() != GAME_OBJECT)
+        {
+            Error::error(Error::LHS_OF_PERIOD_MUST_BE_OBJECT,
+                         *$1, "", "");
+            $$ = undeclared_var;
+        }
+        else if (expr->get_type() == DOUBLE)
+        {
+            Error::error(Error::ARRAY_INDEX_MUST_BE_AN_INTEGER,
+                         *$1, "A double expression", "");
+            $$ = undeclared_var;
+        }
+        else if (expr->get_type() == STRING)
+        {
+            Error::error(Error::ARRAY_INDEX_MUST_BE_AN_INTEGER,
+                         *$1, "A string expression", "");
+            $$ = undeclared_var;
+        }
+        else
+        {
+            int value = expr->eval_int();
+            int val = 0;
+            Game_object *obj = sym1->get_game_object_value();
+            obj->get_member_variable(*$6, val);
+            $$ = new Variable(*$1, GAME_OBJECT, sym1);   
+        }
+    }
     ;
 
 //---------------------------------------------------------------------
