@@ -887,10 +887,10 @@ variable:
                 Gpl_type s, t;
                 Symbol *new_symbol;
                 Game_object *obj = sym1->get_game_object_value();
-                Status status2 = obj->get_member_variable_type(*$3, s);
-                status = cur_object_under_construction->get_member_variable_type(*$3, t);
+                Status status2 = obj->get_member_variable_type(*$3, t);
+                //status = cur_object_under_construction->get_member_variable_type(*$3, t);
                 
-                if (status == OK && status2 == OK)
+                if (status2 == OK) //&& status2 == OK)
                 {
                     if (t == STRING)
                     {
