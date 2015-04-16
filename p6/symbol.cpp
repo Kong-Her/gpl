@@ -46,7 +46,7 @@ Animation_block *Symbol::get_animation_block_value()
 }
 Game_object *Symbol::get_game_object_value()
 {
-    return m_game_obj;
+        return m_game_obj;
 }
 int Symbol::getInt()
 {
@@ -67,10 +67,6 @@ string Symbol::getString()
 Gpl_type Symbol::get_type()
 {
     return m_gpl_type;
-}
-Object_type Symbol::get_object_type()
-{
-    return m_object_type;
 }
 bool Symbol::is_int()
 {

@@ -8,9 +8,6 @@ class Animation_block;
 #include <string>
 using namespace std;
 
-enum Object_type { CIRCLE, RECTANGLE, TRIANGLE,
-                   TEXTBOX, PIXMAP };
-
 class Symbol
 {
     public:
@@ -32,11 +29,9 @@ class Symbol
       bool is_int();
       bool is_double();
       bool is_string();
-      Object_type get_object_type();
 
     private:
       Game_object *m_game_obj;
-      Object_type m_object_type;
       Animation_block *m_animation_block;
       string m_var_name;
       Gpl_type m_gpl_type;
