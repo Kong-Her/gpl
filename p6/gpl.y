@@ -537,61 +537,53 @@ parameter:
     {
         Expression *expr = $3;
         Status status;
+        Gpl_type type;
 
-        if (*$1 == "text" || *$1 == "filename")
-        {
-            string value = expr->eval_string();
-            status = cur_object_under_construction->set_member_variable(*$1, value);
+        status = cur_object_under_construction->get_member_variable_type(*$1, type);
 
-        }
-        else if (*$1 == "red" || *$1 == "green" || *$1 == "blue" ||
-                 *$1 == "scew" || *$1 == "rotation")
+        if (status == OK)
         {
-            if (expr->get_type() == INT || expr->get_type() == DOUBLE)
+            if (type == INT)
             {
-                double value = expr->eval_double(); 
-                status = cur_object_under_construction->set_member_variable(*$1, value);
+                if (expr->get_type() != INT)
+                {
+                    Error::error(Error::INCORRECT_CONSTRUCTOR_PARAMETER_TYPE, obj_name, *$1, "");
+                }
+                else
+                {
+                    int val = expr->eval_int();
+                    cur_object_under_construction->set_member_variable(*$1, val);
+                }
             }
-            else
+            else if (type == DOUBLE)
             {
-                Error::error(Error::INCORRECT_CONSTRUCTOR_PARAMETER_TYPE, obj_name, *$1, "");
+                double val = expr->eval_double();
+                cur_object_under_construction->set_member_variable(*$1, val);
             }
-        }
-        else if (*$1 == "w" || *$1 == "x" || *$1 == "y" || *$1 == "h" || 
-                 *$1 == "space")
-        {
-            if (expr->get_type() == INT)
+            else if (type == STRING)
             {
-                int value = expr->eval_int();
-                status = cur_object_under_construction->set_member_variable(*$1, value);
+                string val = expr->eval_string();
+                cur_object_under_construction->set_member_variable(*$1, val);
             }
-            else
+            else if (type == ANIMATION_BLOCK)
             {
-                Error::error(Error::INCORRECT_CONSTRUCTOR_PARAMETER_TYPE, obj_name, *$1, "");
-            }
-        }
-        else if (expr->get_type() == INT)
-        {
-            int value = expr->eval_int();
-            status = cur_object_under_construction->set_member_variable(*$1, value);
-        }
-        else if (expr->get_type() == DOUBLE)
-        {
-            double value = expr->eval_double();
-            status = cur_object_under_construction->set_member_variable(*$1, value);
+                Gpl_type t;
+                Animation_block *val = expr->eval_animation_block(); 
+                Symbol *symbol = val->get_parameter_symbol();
+                Game_object *game_obj = symbol->get_game_object_value();  
 
+                if (game_obj->type() == cur_object_under_construction->type())
+                {
+                    status = cur_object_under_construction->set_member_variable(*$1, val);
+                }
+                else
+                {
+                    Error::error(Error::TYPE_MISMATCH_BETWEEN_ANIMATION_BLOCK_AND_OBJECT,
+                                 obj_name, val->name(), "");
+                }
+            }
         }
-        else if (expr->get_type() == STRING)
-        {
-            string value = expr->eval_string();
-            status = cur_object_under_construction->set_member_variable(*$1, value);
-        }
-        else if (expr->get_type() == ANIMATION_BLOCK)
-        {
-            Animation_block *ani;
-            ani = expr->eval_animation_block();
-            status = cur_object_under_construction->set_member_variable(*$1, ani);
-        }
+        
         if (status == MEMBER_NOT_OF_GIVEN_TYPE)
         {
             Error::error(Error::INCORRECT_CONSTRUCTOR_PARAMETER_TYPE, obj_name, *$1, "");   
@@ -879,8 +871,6 @@ variable:
     }
     | T_ID T_PERIOD T_ID
     {
-        ostringstream st;
-        string tmp;
         Status status;
         Symbol *sym1 = symbol_table->lookup(*$1);
 
@@ -894,10 +884,46 @@ variable:
             }
             else
             {
-                int val = 0;
+                Gpl_type s, t;
+                Symbol *new_symbol;
                 Game_object *obj = sym1->get_game_object_value();
-                status = obj->get_member_variable(*$3, val);
-                $$ = new Variable(*$1, GAME_OBJECT, sym1);
+                Status status2 = obj->get_member_variable_type(*$3, s);
+                status = cur_object_under_construction->get_member_variable_type(*$3, t);
+                
+                if (status == OK && status2 == OK)
+                {
+                    if (t == STRING)
+                    {
+                        string value;
+                        obj->get_member_variable(*$3, value);
+                        new_symbol = new Symbol(t, *$3, value);
+                    }
+                    else if (t == DOUBLE)
+                    {
+                        double value;
+                        obj->get_member_variable(*$3, value);
+                        new_symbol = new Symbol(t, *$3, value);
+                    }
+                    else if (t == INT)
+                    {
+                        int value;
+                        obj->get_member_variable(*$3, value);
+                        new_symbol = new Symbol(t, *$3, value);
+                    }
+                    else if (t == ANIMATION_BLOCK)
+                    {
+                        Animation_block *ani;
+                        obj->get_member_variable(*$3, ani);
+                        new_symbol = new Symbol(t, *$3, ani);
+                    }
+                    $$ = new Variable(*$3, t, new_symbol);
+                }
+                else 
+                {
+                     Error::error(Error::UNDECLARED_MEMBER,
+                                  obj_name, *$3, ""); 
+                     $$ = undeclared_var;
+                }
             }
         }
         else
@@ -905,40 +931,87 @@ variable:
             Error::error(Error::UNDECLARED_VARIABLE, *$1, "", "");
             $$ = undeclared_var;
         }
+
     }
     | T_ID T_LBRACKET expression T_RBRACKET T_PERIOD T_ID
     {
         Expression *expr = $3;
-        ostringstream st;
+        Gpl_type t;
+        ostringstream st, st2;
+        Symbol *new_symbol;
 
         st << *$1 << "[0]";
         Symbol *sym1 = symbol_table->lookup(st.str());
 
-        if (sym1->get_type() != GAME_OBJECT)
+        if (sym1)
         {
-            Error::error(Error::LHS_OF_PERIOD_MUST_BE_OBJECT,
-                         *$1, "", "");
-            $$ = undeclared_var;
-        }
-        else if (expr->get_type() == DOUBLE)
-        {
-            Error::error(Error::ARRAY_INDEX_MUST_BE_AN_INTEGER,
-                         *$1, "A double expression", "");
-            $$ = undeclared_var;
-        }
-        else if (expr->get_type() == STRING)
-        {
-            Error::error(Error::ARRAY_INDEX_MUST_BE_AN_INTEGER,
-                         *$1, "A string expression", "");
-            $$ = undeclared_var;
+            if (sym1->get_type() != GAME_OBJECT)
+            {
+                Error::error(Error::LHS_OF_PERIOD_MUST_BE_OBJECT,
+                             *$1, "", "");
+                $$ = undeclared_var;
+            }
+            else if (expr->get_type() == DOUBLE)
+            {
+                Error::error(Error::ARRAY_INDEX_MUST_BE_AN_INTEGER,
+                             *$1, "A double expression", "");
+                $$ = undeclared_var;
+            }
+            else if (expr->get_type() == STRING)
+            {
+                Error::error(Error::ARRAY_INDEX_MUST_BE_AN_INTEGER,
+                             *$1, "A string expression", "");
+                $$ = undeclared_var;
+            }
+            else
+            {
+                Status status;
+                int value = expr->eval_int();
+                Game_object *obj = sym1->get_game_object_value();
+                status = obj->get_member_variable_type(*$6, t);
+                
+                if (status == OK)
+                {
+                    if (t == INT)
+                    {
+                        int val;
+                        obj->get_member_variable(*$6, val);
+                        new_symbol = new Symbol(t, *$6, val);
+                    }
+                    else if (t == DOUBLE)
+                    {
+                        double val;
+                        obj->get_member_variable(*$6, val);
+                        new_symbol = new Symbol(t, *$6, val);
+                    }
+                    else if (t == STRING)
+                    {
+                        string val;
+                        obj->get_member_variable(*$6, val);
+                        new_symbol = new Symbol(t, *$6, val);
+                    }
+                    else if (t == ANIMATION_BLOCK)
+                    {
+                        Animation_block *ani;
+                        obj->get_member_variable(*$6, ani);
+                        new_symbol = new Symbol(t, *$6, ani);
+                    }
+                    $$ = new Variable(*$1, t, new_symbol);
+                }
+                if (status == MEMBER_NOT_OF_GIVEN_TYPE)
+                {
+                    Error::error(Error::INCORRECT_CONSTRUCTOR_PARAMETER_TYPE, obj_name, *$1, "");   
+                }
+                if (status == MEMBER_NOT_DECLARED)
+                {
+                    Error::error(Error::UNKNOWN_CONSTRUCTOR_PARAMETER, obj_class, *$1, "");
+                }         
+            }
         }
         else
         {
-            int value = expr->eval_int();
-            int val = 0;
-            Game_object *obj = sym1->get_game_object_value();
-            obj->get_member_variable(*$6, val);
-            $$ = new Variable(*$1, GAME_OBJECT, sym1);   
+            Error::error(Error::UNDECLARED_VARIABLE, *$1, "", "");
+            $$ = undeclared_var;
         }
     }
     ;

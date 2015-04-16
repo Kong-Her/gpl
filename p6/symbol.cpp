@@ -68,6 +68,10 @@ Gpl_type Symbol::get_type()
 {
     return m_gpl_type;
 }
+Object_type Symbol::get_object_type()
+{
+    return m_object_type;
+}
 bool Symbol::is_int()
 {
     if (m_gpl_type == INT)
