@@ -84,7 +84,7 @@ bool Symbol_table::get(string name, int &value)
 bool Symbol_table::get(string name, double &value)
 {
     Symbol *cur = lookup(name);
-    if (!cur || !cur->is_int())
+    if (!cur || !cur->is_double())
         return false;
 
     value = cur->getDouble();
@@ -93,7 +93,7 @@ bool Symbol_table::get(string name, double &value)
 bool Symbol_table::get(string name, string &value)
 {
     Symbol *cur = lookup(name);
-    if (!cur || !cur->is_int())
+    if (!cur || !cur->is_string())
         return false;
 
     value = cur->getString();
@@ -101,9 +101,15 @@ bool Symbol_table::get(string name, string &value)
 }
 bool Symbol_table::get_type(string name, Gpl_type &type)
 {
-    return false;
+    Symbol *cur = lookup(name);
+    if (!cur) 
+        return false;
+
+    type = cur->get_type();
+    return true;
 }
 bool Symbol_table::set(string name, int value) // used for mouse_x, mouse_y
 {
     return false;
 }
+

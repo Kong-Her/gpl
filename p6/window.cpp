@@ -302,6 +302,13 @@ void Window::set_height(int height)
   symbol_table->set("window_height", height);
 }
 
+void Window::set_title(string st)
+{
+  m_title = st;
+
+  // if there is a symbol window_title, update it
+}
+
 // dump the current front openGL color buffer to 
 // the given file (Written by Johnathan Smith)
 void Window::dump_pixels(const char *dumpwindow_filename)

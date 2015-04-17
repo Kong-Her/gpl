@@ -74,6 +74,7 @@ class Window
     int height() {return m_h;}
     void set_width(int width);
     void set_height(int height);
+    void set_title(std::string str);
 
     void dump_pixels(const char *dumpwindow_filename);
 

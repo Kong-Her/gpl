@@ -202,29 +202,54 @@ variable_declaration:
         int int_value = 0;
         double double_value = 0;
         ostringstream convert;
+        Gpl_type gpl_type;
 
         convert << *$2 << "[0]";
         Symbol *sym = symbol_table->lookup(convert.str());
         
-        if ((*$2 == "window_width" || *$2 == "window_height") &&
-             init_expr->get_type() != INT)
-        {
-            string s;
-            if (init_expr->get_type() == DOUBLE)
-            {
-                s = "double";
-            }
-            else
-            {
-                s = "string";
-            }
-            Error::error(Error::INVALID_TYPE_FOR_RESERVED_VARIABLE,
-                         *$2, s, "int");
-        }
-
         if(!sym)
         {
-            if ($1 == INT)
+            if (symbol_table->get_type(*$2, gpl_type) && init_expr)
+            {
+                Window *window;
+                if (gpl_type == $1 && $1 == INT)
+                {
+                    int val = init_expr->eval_int();
+                    if (*$2 == "window_width")
+                    {
+                        window->set_width(val);
+                    }
+                    else if (*$2 == "window_height")
+                    {
+                        window->set_height(val);
+                    }
+                }
+                else if ($1 == STRING)
+                {
+                    string str = init_expr->eval_string();
+                    window->set_title(str);
+                }
+                else
+                {
+                    string s;
+                    if (init_expr->get_type() == INT)
+                    {
+                        s = "int";
+                    }
+                    else if (init_expr->get_type() == DOUBLE)
+                    {
+                        s = "double";
+                    }
+                    else
+                    {
+                        s = "string";
+                    }
+                    convert << gpl_type;
+                    Error::error(Error::INVALID_TYPE_FOR_RESERVED_VARIABLE,
+                                 *$2, s, convert.str());
+                }
+            }
+            else if ($1 == INT)
             {
                 if (init_expr != NULL)
                 {
