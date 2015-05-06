@@ -29,6 +29,7 @@
 #include "symbol.h"
 #include "symbol_table.h"
 #include "gpl_type.h"
+#include "window.h"
 
 #include "y.tab.h"
 

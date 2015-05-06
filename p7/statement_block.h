@@ -15,6 +15,8 @@
 #define STATEMENT_BLOCK_H
 
 #include <iostream>
+#include <vector>
+#include "statement.h"
 
 #include "indent.h"
 
@@ -31,6 +33,8 @@ class Statement_block
     // This is called when a statement block is executed
     // Implement it for p7
     void execute();
+  private:
+    std::vector<Statement *> m_vector_statement;
   
 };
 

@@ -17,14 +17,16 @@ extern int line_count;            // current line in the input; from record.l
 #include "rectangle.h"
 #include "triangle.h"
 #include "textbox.h"
-#include "window.h"
+//#include "window.h"
 #include "animation_block.h"
 #include "statement_block.h"
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <stack>
 using namespace std;
 
+stack<Statement_block *> global_statement_stack;
 int undeclared = 0;
 Variable *undeclared_var = new Variable(new Symbol("__undeclared", undeclared));
 Symbol_table *symbol_table = Symbol_table::instance();
@@ -45,6 +47,7 @@ string obj_class, obj_name;
  class Variable *union_variable;
  class Symbol    *union_symbol;
  class Game_object *union_game_object;
+ Window::Keystroke  union_keystroke;
 }
 
 // turn on verbose (longer) error messages
@@ -155,6 +158,8 @@ string obj_class, obj_name;
 %type <union_variable> variable
 %type <union_symbol> animation_parameter
 %type <union_int> object_type
+%type <union_keystroke> keystroke
+
 
 
 // special token that does not match any production
@@ -695,7 +700,13 @@ on_block:
 //---------------------------------------------------------------------
 keystroke:
     T_SPACE
+    {
+        $$ = Window::SPACE;
+    }
     | T_UPARROW
+    {
+        $$ = Window::UPARROW;
+    }
     | T_DOWNARROW
     | T_LEFTARROW
     | T_RIGHTARROW
