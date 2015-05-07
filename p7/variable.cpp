@@ -32,7 +32,7 @@ string Variable::get_string_value()
 }
 string Variable::get_var_name()
 {
-    return m_var_name;
+    return m_sym->getId();
 }
 Animation_block *Variable::get_animation_block()
 {
@@ -41,4 +41,8 @@ Animation_block *Variable::get_animation_block()
 Gpl_type Variable::get_var_type()
 {
     return m_sym->get_type();
+}
+Symbol *Variable::get_symbol()
+{
+    return m_sym;
 }

@@ -23,6 +23,7 @@ class Variable
         string get_var_name();
         Animation_block *get_animation_block();
         Gpl_type get_var_type();
+        Symbol *get_symbol();
 
     private:
         string m_var_name;

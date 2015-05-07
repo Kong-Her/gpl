@@ -14,6 +14,7 @@ class Exit_stmt: public Statement
 
     private:
         Expression *m_expr;
+        int m_line_number;
 
 };
 

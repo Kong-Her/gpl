@@ -112,3 +112,8 @@ bool Symbol_table::set(string name, int value) // used for mouse_x, mouse_y
 {
     return false;
 }
+void Symbol_table::update_symbol(Symbol *sym)
+{
+    string var_name = sym->getId();
+    sym_table[var_name] = sym;
+}

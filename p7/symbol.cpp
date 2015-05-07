@@ -95,3 +95,15 @@ bool Symbol::is_string()
     else
         return false;
 }
+void Symbol::set_new_value(string val)
+{
+    m_string_val = val;
+}
+void Symbol::set_new_value(double val)
+{
+    m_double_val = val;
+}
+void Symbol::set_new_value(int val)
+{
+    m_int_val = val;
+}

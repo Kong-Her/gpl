@@ -19,6 +19,9 @@ extern int line_count;            // current line in the input; from record.l
 #include "textbox.h"
 #include "animation_block.h"
 #include "statement_block.h"
+#include "assignment_stmt.h"
+#include "if_stmt.h"
+#include "exit_stmt.h"
 #include "print_stmt.h"
 #include "event_manager.h"
 #include <iostream>
@@ -165,6 +168,7 @@ string obj_class, obj_name;
 %type <union_statement_block> statement_block
 %type <union_statement_block> statement_block_creator
 %type <union_statement_block> end_of_statement_block
+%type <union_statement_block> if_block
 
 // special token that does not match any production
 // used for characters that are not part of the language
@@ -854,7 +858,15 @@ statement:
 //---------------------------------------------------------------------
 if_statement: 
     T_IF T_LPAREN expression T_RPAREN if_block %prec IF_NO_ELSE
+    {
+        Statement *new_stmt = new If_stmt($3, $5);
+        global_statement_stack.top()->insert(new_stmt);
+    }
     | T_IF T_LPAREN expression T_RPAREN if_block T_ELSE if_block 
+    {
+        Statement *new_stmt = new If_stmt($3, $5);
+        global_statement_stack.top()->insert(new_stmt);
+    }
     ;
 
 //---------------------------------------------------------------------
@@ -866,37 +878,37 @@ for_statement:
 print_statement:
     T_PRINT T_LPAREN expression T_RPAREN
     {
-        Statement *print_stmt; 
-        Statement_block *top_stmt_block;
-        
-        print_stmt = new Print_stmt($3);
-        top_stmt_block = global_statement_stack.top();
-        top_stmt_block->insert(print_stmt);
+        Statement *new_stmt = new Print_stmt($3);
+        global_statement_stack.top()->insert(new_stmt);
     }
     ;
 
 //---------------------------------------------------------------------
 exit_statement:
     T_EXIT T_LPAREN expression T_RPAREN
+    {
+        Statement *new_stmt = new Exit_stmt($3);
+        global_statement_stack.top()->insert(new_stmt);
+    }
     ;
 
 //---------------------------------------------------------------------
 assign_statement:
     variable T_ASSIGN expression
     {
-        /*Expression *expr;
-        string str, value;
-        Gpl_type var_type = $1->get_var_type();
-        
-        if (var_type == STRING)
-        {
-            value = expr->eval_string();
-        }
-        str = $1->get_var_name();
-        Symbol *sym = symbol_table->lookup(sym);*/
+        Statement *new_stmt = new Assignment_stmt($1, $3, "=");
+        global_statement_stack.top()->insert(new_stmt);
     }
     | variable T_PLUS_ASSIGN expression
+    {
+        Statement *new_stmt = new Assignment_stmt($1, $3, "+=");
+        global_statement_stack.top()->insert(new_stmt);
+    }
     | variable T_MINUS_ASSIGN expression
+    {
+        Statement *new_stmt = new Assignment_stmt($1, $3, "-=");
+        global_statement_stack.top()->insert(new_stmt);
+    }
     ;
 
 //---------------------------------------------------------------------
@@ -1507,7 +1519,7 @@ expression:
     }
     | variable geometric_operator variable
     {
-        
+
     }
     ;
 

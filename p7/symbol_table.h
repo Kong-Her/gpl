@@ -18,7 +18,7 @@ class Symbol_table
         bool get(string, string &);
         bool get_type(string, Gpl_type &);
         bool set(string, int);
-        void set_new_value();
+        void update_symbol(Symbol *);
 
     private:
         static Symbol_table *m_instance;

@@ -29,6 +29,9 @@ class Symbol
       bool is_int();
       bool is_double();
       bool is_string();
+      void set_new_value(string);
+      void set_new_value(double);
+      void set_new_value(int);
 
     private:
       Game_object *m_game_obj;
