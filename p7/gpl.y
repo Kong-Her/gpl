@@ -20,6 +20,7 @@ extern int line_count;            // current line in the input; from record.l
 #include "animation_block.h"
 #include "statement_block.h"
 #include "assignment_stmt.h"
+#include "for_stmt.h"
 #include "if_stmt.h"
 #include "exit_stmt.h"
 #include "print_stmt.h"
@@ -807,7 +808,13 @@ keystroke:
 //---------------------------------------------------------------------
 if_block:
     statement_block_creator statement end_of_statement_block
+    {
+        $$ = $3;
+    }
     | statement_block
+    {
+        $$ = $1;
+    }
     ;
 
 //---------------------------------------------------------------------
@@ -871,7 +878,13 @@ if_statement:
 
 //---------------------------------------------------------------------
 for_statement:
-    T_FOR T_LPAREN statement_block_creator assign_statement end_of_statement_block T_SEMIC expression T_SEMIC statement_block_creator assign_statement end_of_statement_block T_RPAREN statement_block
+    T_FOR T_LPAREN statement_block_creator assign_statement end_of_statement_block T_SEMIC
+    expression T_SEMIC 
+    statement_block_creator assign_statement end_of_statement_block T_RPAREN statement_block
+    {
+        Statement *new_stmt = new For_stmt($5, $11, $13, $7);
+        global_statement_stack.top()->insert(new_stmt);
+    }
     ;
 
 //---------------------------------------------------------------------

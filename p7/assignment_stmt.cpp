@@ -22,13 +22,44 @@ void Assignment_stmt::execute()
     }
     else if (var_type == DOUBLE && expr_type != STRING)
     {
-        cur_sym->set_new_value(m_expr->eval_double());
-        symbol_table->update_symbol(cur_sym);
+        if (m_op_type == "=")
+        {
+            cur_sym->set_new_value(m_expr->eval_double());
+            symbol_table->update_symbol(cur_sym);
+        }
+        else if (m_op_type == "+=")
+        {
+            int total = cur_sym->getDouble() + m_expr->eval_double();
+            cur_sym->set_new_value(total);
+            symbol_table->update_symbol(cur_sym);
+        }
+        else if (m_op_type == "-=")
+        {
+            int total = cur_sym->getDouble() - m_expr->eval_double();
+            cur_sym->set_new_value(total);
+            symbol_table->update_symbol(cur_sym);
+        }
     }
     else if (var_type == INT && expr_type == INT)
     {
-        cur_sym->set_new_value(m_expr->eval_int());
-        symbol_table->update_symbol(cur_sym);
+        if (m_op_type == "=")
+        {
+            cur_sym->set_new_value(m_expr->eval_int());
+            symbol_table->update_symbol(cur_sym);
+        }
+        else if (m_op_type == "+=")
+        {
+            int total = cur_sym->getInt() + m_expr->eval_int();
+            cur_sym->set_new_value(total);
+            symbol_table->update_symbol(cur_sym);
+        }
+        else if (m_op_type == "-=")
+        {
+            int total = cur_sym->getInt() - m_expr->eval_int();
+            cur_sym->set_new_value(total);
+            symbol_table->update_symbol(cur_sym);
+        }
+
     }
         
 }
