@@ -9,18 +9,29 @@ Assignment_stmt::Assignment_stmt(Variable *var, Expression *expr, string op_type
 void Assignment_stmt::execute()
 {
     Symbol_table *symbol_table = Symbol_table::instance();
-    int expr_type, var_type;
+    int expr_type, type;
     Symbol *cur_sym = m_var->get_symbol();
     
     expr_type = m_expr->get_type();    
-    var_type = cur_sym->get_type();
+    type = cur_sym->get_type();
 
-    if (var_type == STRING)
+    if (type == STRING)
     {
-        cur_sym->set_new_value(m_expr->eval_string());
-        symbol_table->update_symbol(cur_sym);
+        string str;
+
+        if (m_op_type == "=")
+        {
+            cur_sym->set_new_value(m_expr->eval_string());
+            symbol_table->update_symbol(cur_sym);
+        }
+        else if (m_op_type == "+=")
+        {
+            str = cur_sym->getString() + m_expr->eval_string();
+            cur_sym->set_new_value(str);
+            symbol_table->update_symbol(cur_sym);
+        }
     }
-    else if (var_type == DOUBLE && expr_type != STRING)
+    else if (type == DOUBLE && expr_type != STRING)
     {
         if (m_op_type == "=")
         {
@@ -29,18 +40,18 @@ void Assignment_stmt::execute()
         }
         else if (m_op_type == "+=")
         {
-            int total = cur_sym->getDouble() + m_expr->eval_double();
+            double total = cur_sym->getDouble() + m_expr->eval_double();
             cur_sym->set_new_value(total);
             symbol_table->update_symbol(cur_sym);
         }
         else if (m_op_type == "-=")
         {
-            int total = cur_sym->getDouble() - m_expr->eval_double();
+            double total = cur_sym->getDouble() - m_expr->eval_double();
             cur_sym->set_new_value(total);
             symbol_table->update_symbol(cur_sym);
         }
     }
-    else if (var_type == INT && expr_type == INT)
+    else if (type == INT && expr_type == INT)
     {
         if (m_op_type == "=")
         {
@@ -61,5 +72,61 @@ void Assignment_stmt::execute()
         }
 
     }
-        
+    else if (type == GAME_OBJECT)
+    {
+        //Status status;
+        string name = cur_sym->getId();
+        if (expr_type == INT)
+        {
+            if (m_op_type == "=")
+            {
+                int value = m_expr->eval_int();
+                cur_sym->get_game_object_value()->set_member_variable(name, value);
+            }
+            else if (m_op_type == "+=")
+            {
+                int total, value; 
+                cur_sym->get_game_object_value()->get_member_variable(name, value);
+                total = m_expr->eval_int() + value;
+                cur_sym->get_game_object_value()->set_member_variable(name, total);
+            }
+            else if (m_op_type == "-=")
+            {
+                int total, value; 
+                cur_sym->get_game_object_value()->get_member_variable(name, value);
+                total = m_expr->eval_int() - value;
+                cur_sym->get_game_object_value()->set_member_variable(name, total);
+            }
+
+            //if (status == OK)
+            //{
+                //cur_sym->set_new_value(value);
+                //symbol_table->update_symbol(cur_sym);
+            //}
+        }
+        else if (expr_type == DOUBLE)
+        {
+            double value = m_expr->eval_double();
+            /*status =*/ cur_sym->get_game_object_value()->set_member_variable(name, value);
+            //if (status == OK)
+            //{   
+                //cur_sym->set_new_value(value);
+                //symbol_table->update_symbol(cur_sym);
+            //}
+        }
+        else if (expr_type == STRING)
+        {
+            string value = m_expr->eval_string();
+            /*status =*/ cur_sym->get_game_object_value()->set_member_variable(name, value);
+            //if (status == OK)
+            //{
+                //cur_sym->set_new_value(value);
+                //symbol_table->update_symbol(cur_sym);
+            //}
+        }
+
+   } 
+   else if (type == ANIMATION_BLOCK)
+   {
+   }
 }

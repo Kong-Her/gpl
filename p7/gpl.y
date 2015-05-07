@@ -909,18 +909,97 @@ exit_statement:
 assign_statement:
     variable T_ASSIGN expression
     {
-        Statement *new_stmt = new Assignment_stmt($1, $3, "=");
-        global_statement_stack.top()->insert(new_stmt);
+        ostringstream os1, os2;
+        Symbol *sym = $1->get_symbol();
+        
+        if (sym->get_type() == STRING || 
+            (sym->get_type() == DOUBLE && $3->get_type() == (INT|DOUBLE)) ||
+            (sym->get_type() == INT && $3->get_type() == INT))
+        {
+            Statement *new_stmt = new Assignment_stmt($1, $3, "=");
+            global_statement_stack.top()->insert(new_stmt);
+        }
+        else
+        {
+            os1 << sym->get_type();
+            if ($3->get_type() == INT)
+            {
+                os2 << "int";
+            }
+            else if ($3->get_type() == DOUBLE)
+            {
+                os2 << "double";
+            }
+            else 
+            {
+                os2 << "string";
+            }
+
+            Error::error(Error::ASSIGNMENT_TYPE_ERROR, os1.str(), os2.str(), "");
+        }
+    
     }
     | variable T_PLUS_ASSIGN expression
     {
-        Statement *new_stmt = new Assignment_stmt($1, $3, "+=");
-        global_statement_stack.top()->insert(new_stmt);
+        ostringstream os1, os2;
+        Symbol *sym = $1->get_symbol();
+
+        if (sym->get_type() == STRING || 
+            (sym->get_type() == DOUBLE && $3->get_type() == (INT|DOUBLE)) ||
+            (sym->get_type() == INT && $3->get_type() == INT))
+        {
+            Statement *new_stmt = new Assignment_stmt($1, $3, "+=");
+            global_statement_stack.top()->insert(new_stmt);
+        }
+        else
+        {
+            os1 << sym->get_type();
+            if ($3->get_type() == INT)
+            {
+                os2 << "int";
+            }
+            else if ($3->get_type() == DOUBLE)
+            {
+                os2 << "double";
+            }
+            else 
+            {
+                os2 << "string";
+            }
+
+            Error::error(Error::PLUS_ASSIGNMENT_TYPE_ERROR, os1.str(), os2.str(), "");
+        }
     }
     | variable T_MINUS_ASSIGN expression
     {
-        Statement *new_stmt = new Assignment_stmt($1, $3, "-=");
-        global_statement_stack.top()->insert(new_stmt);
+        ostringstream os1, os2;
+        Symbol *sym = $1->get_symbol();
+        
+        if (sym->get_type() == STRING || 
+            (sym->get_type() == DOUBLE && $3->get_type() == (INT|DOUBLE)) ||
+            (sym->get_type() == INT && $3->get_type() == INT))
+        {
+            Statement *new_stmt = new Assignment_stmt($1, $3, "-=");
+            global_statement_stack.top()->insert(new_stmt);
+        }
+        else
+        {
+            os1 << sym->get_type();
+            if ($3->get_type() == INT)
+            {
+                os2 << "int";
+            }
+            else if ($3->get_type() == DOUBLE)
+            {
+                os2 << "double";
+            }
+            else 
+            {
+                os2 << "string";
+            }
+
+            Error::error(Error::MINUS_ASSIGNMENT_TYPE_ERROR, os1.str(), os2.str(), "");
+        }
     }
     ;
 
