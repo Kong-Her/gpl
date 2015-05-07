@@ -866,13 +866,27 @@ statement:
 if_statement: 
     T_IF T_LPAREN expression T_RPAREN if_block %prec IF_NO_ELSE
     {
-        Statement *new_stmt = new If_stmt($3, $5, NULL);
-        global_statement_stack.top()->insert(new_stmt);
+        if ($3->get_type() != INT)
+        {
+            Error::error(Error::INVALID_TYPE_FOR_IF_STMT_EXPRESSION, "", "", "");
+        }
+        else
+        {
+            Statement *new_stmt = new If_stmt($3, $5, NULL);
+            global_statement_stack.top()->insert(new_stmt);
+        }
     }
     | T_IF T_LPAREN expression T_RPAREN if_block T_ELSE if_block 
     {
-        Statement *new_stmt = new If_stmt($3, $5, $7);
-        global_statement_stack.top()->insert(new_stmt);
+        if ($3->get_type() != INT)
+        {
+            Error::error(Error::INVALID_TYPE_FOR_IF_STMT_EXPRESSION, "", "", "");
+        }
+        else
+        {
+            Statement *new_stmt = new If_stmt($3, $5, $7);
+            global_statement_stack.top()->insert(new_stmt);
+        }
     }
     ;
 
@@ -882,8 +896,15 @@ for_statement:
     expression T_SEMIC 
     statement_block_creator assign_statement end_of_statement_block T_RPAREN statement_block
     {
-        Statement *new_stmt = new For_stmt($5, $11, $13, $7);
-        global_statement_stack.top()->insert(new_stmt);
+        if ($7->get_type() != INT)
+        {
+            Error::error(Error::INVALID_TYPE_FOR_FOR_STMT_EXPRESSION, "", "", "");
+        }
+        else
+        {
+            Statement *new_stmt = new For_stmt($5, $11, $13, $7);
+            global_statement_stack.top()->insert(new_stmt);
+        }
     }
     ;
 
@@ -891,8 +912,16 @@ for_statement:
 print_statement:
     T_PRINT T_LPAREN expression T_RPAREN
     {
-        Statement *new_stmt = new Print_stmt($3);
-        global_statement_stack.top()->insert(new_stmt);
+        int type = $3->get_type();
+        if (type != 1 && type != 2 && type != 4) 
+        {
+            Error::error(Error::INVALID_TYPE_FOR_PRINT_STMT_EXPRESSION, "", "", "");
+        }
+        else
+        {
+            Statement *new_stmt = new Print_stmt($3);
+            global_statement_stack.top()->insert(new_stmt);
+        }
     }
     ;
 
@@ -900,8 +929,24 @@ print_statement:
 exit_statement:
     T_EXIT T_LPAREN expression T_RPAREN
     {
-        Statement *new_stmt = new Exit_stmt($3);
-        global_statement_stack.top()->insert(new_stmt);
+        if ($3->get_type() != INT)
+        {
+            ostringstream os;
+            if ($3->get_type() == DOUBLE)
+            {
+                os << "double";
+            }
+            else
+            {
+                os << "string";
+            }
+            Error::error(Error::EXIT_STATUS_MUST_BE_AN_INTEGER, os.str(), "", "");
+        }
+        else
+        {
+            Statement *new_stmt = new Exit_stmt($3);
+            global_statement_stack.top()->insert(new_stmt);
+        }
     }
     ;
 
@@ -913,11 +958,17 @@ assign_statement:
         Symbol *sym = $1->get_symbol();
         
         if (sym->get_type() == STRING || 
-            (sym->get_type() == DOUBLE && $3->get_type() == (INT|DOUBLE)) ||
+            (sym->get_type() == DOUBLE && ($3->get_type() == INT || 
+            $3->get_type() == DOUBLE)) ||
             (sym->get_type() == INT && $3->get_type() == INT))
         {
             Statement *new_stmt = new Assignment_stmt($1, $3, "=");
             global_statement_stack.top()->insert(new_stmt);
+        }
+        else if (sym->get_type() == GAME_OBJECT && $3->get_type() != GAME_OBJECT)
+        {
+            Error::error(Error::INVALID_LHS_OF_ASSIGNMENT, $1->get_var_name(),
+                         "game_object", "");
         }
         else
         {
@@ -975,8 +1026,7 @@ assign_statement:
         ostringstream os1, os2;
         Symbol *sym = $1->get_symbol();
         
-        if (sym->get_type() == STRING || 
-            (sym->get_type() == DOUBLE && $3->get_type() == (INT|DOUBLE)) ||
+        if ((sym->get_type() == DOUBLE && $3->get_type() == (INT|DOUBLE)) ||
             (sym->get_type() == INT && $3->get_type() == INT))
         {
             Statement *new_stmt = new Assignment_stmt($1, $3, "-=");
@@ -998,7 +1048,15 @@ assign_statement:
                 os2 << "string";
             }
 
-            Error::error(Error::MINUS_ASSIGNMENT_TYPE_ERROR, os1.str(), os2.str(), "");
+            if (sym->get_type() == STRING)
+            {
+                Error::error(Error::INVALID_LHS_OF_MINUS_ASSIGNMENT,
+                             $1->get_var_name(), "string", "");
+            }
+            else
+            {
+                Error::error(Error::MINUS_ASSIGNMENT_TYPE_ERROR, os1.str(), os2.str(), "");
+            }
         }
     }
     ;
