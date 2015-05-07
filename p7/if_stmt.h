@@ -8,13 +8,14 @@
 class If_stmt: public Statement
 {
     public:
-        If_stmt(Expression *, Statement_block *);
+        If_stmt(Expression *, Statement_block *, Statement_block *);
 
     protected:
         void execute();
 
     private:
         Statement_block *m_statement_block;
+        Statement_block *m_statement_block2;
         Expression *m_expr;
 
 };

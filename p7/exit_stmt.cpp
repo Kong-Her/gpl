@@ -10,5 +10,6 @@ void Exit_stmt::execute()
 {
     cout << "gpl[" << m_line_number << "]: ";
     int return_val = m_expr->eval_int();
+    cout << "exit(" << return_val << ")" << endl;
     exit(return_val);
 }

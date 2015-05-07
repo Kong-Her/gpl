@@ -859,12 +859,12 @@ statement:
 if_statement: 
     T_IF T_LPAREN expression T_RPAREN if_block %prec IF_NO_ELSE
     {
-        Statement *new_stmt = new If_stmt($3, $5);
+        Statement *new_stmt = new If_stmt($3, $5, NULL);
         global_statement_stack.top()->insert(new_stmt);
     }
     | T_IF T_LPAREN expression T_RPAREN if_block T_ELSE if_block 
     {
-        Statement *new_stmt = new If_stmt($3, $5);
+        Statement *new_stmt = new If_stmt($3, $5, $7);
         global_statement_stack.top()->insert(new_stmt);
     }
     ;
