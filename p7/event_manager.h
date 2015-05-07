@@ -31,12 +31,15 @@ class Event_manager
     static Event_manager *instance();
 
     void execute_handlers(Window::Keystroke keystroke);
+    void register_handler(Window::Keystroke, Statement_block *);
 
     ~Event_manager();
 
   private:
     // hide default constructor because this is a singleton
     Event_manager();
+
+    std::vector<Statement_block *> m_event_types[25];
 
     static Event_manager *m_instance;
 

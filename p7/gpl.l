@@ -45,6 +45,10 @@ void get_string_value()
   }
   yylval.union_string = new string(yytext);
 }
+void set_line_number()
+{
+  yylval.union_int = line_count;
+}
 //-------------------------------------------------------------------
 void error()
 {
@@ -123,8 +127,8 @@ The right-hand-side (RHS) specifies an action (code to execute) when
 "if"            return T_IF;
 "for"           return T_FOR;
 "else"          return T_ELSE;
-"print"         return T_PRINT;
-"exit"          return T_EXIT;
+"print"         set_line_number; return T_PRINT;
+"exit"          set_line_number; return T_EXIT;
 
 "("             return T_LPAREN;
 ")"             return T_RPAREN;

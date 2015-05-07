@@ -7,6 +7,10 @@ Statement_block::Statement_block()
 {
 
 }
+void Statement_block::insert(Statement *stmt)
+{
+    m_vector_statement.push_back(stmt);
+}
 
 // Return true if this statement_block has no statements, false otherwise
 // Implement this function for p7 (but you won't need it until p8)
@@ -24,10 +28,11 @@ bool Statement_block::empty()
 // Implement it for p7
 void Statement_block::execute()
 {
-  // This function should be defined before it is ever called
-  // This assert will cause the program to abort if this function 
-  // is called before it is implemented.
+    vector<Statement *>::iterator it;
 
-  // *** ==> Remove this assert when you implement this function
-  assert(false);
+    for (it = m_vector_statement.begin(); 
+         it != m_vector_statement.end(); it++)
+    {
+        (*it)->execute();
+    }
 }

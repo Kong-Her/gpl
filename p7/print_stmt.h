@@ -9,10 +9,13 @@ class Print_stmt: public Statement
 {
     public:
         Print_stmt(Expression *);
-        void execute();
+        
+    protected:
+    	void execute();
     
     private:
         Expression *m_expr;
+        int m_line_number;
 
 };
 

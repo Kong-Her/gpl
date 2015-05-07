@@ -26,6 +26,7 @@ class Statement_block
 {
   public:
     Statement_block();
+    void insert(Statement *);
 
     // return true if the statement block contains no statements
     bool empty();

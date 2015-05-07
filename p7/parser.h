@@ -30,6 +30,7 @@
 #include "symbol_table.h"
 #include "gpl_type.h"
 #include "window.h"
+#include "statement_block.h"
 
 #include "y.tab.h"
 

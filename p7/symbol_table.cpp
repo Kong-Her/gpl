@@ -112,4 +112,3 @@ bool Symbol_table::set(string name, int value) // used for mouse_x, mouse_y
 {
     return false;
 }
-

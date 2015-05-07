@@ -9,6 +9,8 @@ class If_stmt: public Statement
 {
     public:
         If_stmt(Expression *, Statement_block *);
+
+    protected:
         void execute();
 
     private:

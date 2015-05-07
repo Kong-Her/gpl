@@ -10,6 +10,8 @@ class For_stmt: public Statement
     public:
         For_stmt(Statement_block *, Statement_block *, 
                  Statement_block *, Expression *);
+
+    protected:
         void execute();
 
 

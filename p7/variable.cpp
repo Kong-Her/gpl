@@ -30,6 +30,10 @@ string Variable::get_string_value()
 {
     return m_sym->getString();
 }
+string Variable::get_var_name()
+{
+    return m_var_name;
+}
 Animation_block *Variable::get_animation_block()
 {
     return m_sym->get_animation_block_value();

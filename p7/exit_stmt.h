@@ -8,6 +8,8 @@ class Exit_stmt: public Statement
 {
     public:
         Exit_stmt(Expression *);
+    
+    protected:
         void execute();
 
     private:

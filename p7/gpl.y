@@ -17,9 +17,10 @@ extern int line_count;            // current line in the input; from record.l
 #include "rectangle.h"
 #include "triangle.h"
 #include "textbox.h"
-//#include "window.h"
 #include "animation_block.h"
 #include "statement_block.h"
+#include "print_stmt.h"
+#include "event_manager.h"
 #include <iostream>
 #include <string>
 #include <sstream>
@@ -30,6 +31,7 @@ stack<Statement_block *> global_statement_stack;
 int undeclared = 0;
 Variable *undeclared_var = new Variable(new Symbol("__undeclared", undeclared));
 Symbol_table *symbol_table = Symbol_table::instance();
+Event_manager *event_manager = Event_manager::instance();
 Game_object *cur_object_under_construction;
 string obj_class, obj_name;
 
@@ -48,6 +50,7 @@ string obj_class, obj_name;
  class Symbol    *union_symbol;
  class Game_object *union_game_object;
  Window::Keystroke  union_keystroke;
+ Statement_block    *union_statement_block;
 }
 
 // turn on verbose (longer) error messages
@@ -159,8 +162,9 @@ string obj_class, obj_name;
 %type <union_symbol> animation_parameter
 %type <union_int> object_type
 %type <union_keystroke> keystroke
-
-
+%type <union_statement_block> statement_block
+%type <union_statement_block> statement_block_creator
+%type <union_statement_block> end_of_statement_block
 
 // special token that does not match any production
 // used for characters that are not part of the language
@@ -695,6 +699,9 @@ check_animation_parameter:
 //---------------------------------------------------------------------
 on_block:
     T_ON keystroke statement_block
+    {
+        event_manager->register_handler($2, $3);
+    }
     ;
 
 //---------------------------------------------------------------------
@@ -708,26 +715,89 @@ keystroke:
         $$ = Window::UPARROW;
     }
     | T_DOWNARROW
+    {
+        $$ = Window::DOWNARROW;
+    }
     | T_LEFTARROW
+    {
+        $$ = Window::LEFTARROW;  
+    }
     | T_RIGHTARROW
+    {
+        $$ = Window::RIGHTARROW;
+    }
     | T_LEFTMOUSE_DOWN
+    {
+        $$ = Window::LEFTMOUSE_DOWN;
+    }
     | T_MIDDLEMOUSE_DOWN
+    {
+        $$ = Window::MIDDLEMOUSE_DOWN;
+    }
     | T_RIGHTMOUSE_DOWN
+    {
+        $$ = Window::RIGHTMOUSE_DOWN;
+    }
     | T_LEFTMOUSE_UP
+    {
+        $$ = Window::LEFTMOUSE_UP;
+    }
     | T_MIDDLEMOUSE_UP
+    {
+        $$ = Window::MIDDLEMOUSE_UP;
+    }
     | T_RIGHTMOUSE_UP
+    {
+        $$ = Window::RIGHTMOUSE_UP;
+    }
     | T_MOUSE_MOVE
+    {
+        $$ = Window::MOUSE_MOVE;
+    }
     | T_MOUSE_DRAG
+    {
+        $$ = Window::MOUSE_DRAG;
+    }
     | T_AKEY 
+    {
+        $$ = Window::AKEY;
+    }
     | T_SKEY 
+    {
+        $$ = Window::SKEY;
+    }
     | T_DKEY 
+    {
+        $$ = Window::DKEY;
+    }
     | T_FKEY 
+    {
+        $$ = Window::FKEY;
+    }
     | T_HKEY 
+    {
+        $$ = Window::HKEY;
+    }
     | T_JKEY 
+    {
+        $$ = Window::JKEY;
+    }
     | T_KKEY 
+    {
+        $$ = Window::KKEY;
+    }
     | T_LKEY 
+    {
+        $$ = Window::LKEY;
+    }
     | T_WKEY 
+    {
+        $$ = Window::WKEY;
+    }
     | T_F1
+    {
+        $$ = Window::F1;
+    }
     ;
 
 //---------------------------------------------------------------------
@@ -739,16 +809,31 @@ if_block:
 //---------------------------------------------------------------------
 statement_block:
     T_LBRACE statement_block_creator statement_list T_RBRACE end_of_statement_block
+    {
+        $$ = $5;
+    }
     ;
 
 //---------------------------------------------------------------------
 statement_block_creator:
     // this goes to nothing so that you can put an action here in p7
+    {
+        Statement_block *new_stmt_block = new Statement_block();
+        global_statement_stack.push(new_stmt_block);
+
+        $$ = new_stmt_block;
+    }
     ;
 
 //---------------------------------------------------------------------
 end_of_statement_block:
     // this goes to nothing so that you can put an action here in p7
+    {
+        Statement_block *top_stmt_block = global_statement_stack.top();
+        global_statement_stack.pop();
+
+        $$ = top_stmt_block;
+    }
     ;
 
 //---------------------------------------------------------------------
@@ -780,6 +865,14 @@ for_statement:
 //---------------------------------------------------------------------
 print_statement:
     T_PRINT T_LPAREN expression T_RPAREN
+    {
+        Statement *print_stmt; 
+        Statement_block *top_stmt_block;
+        
+        print_stmt = new Print_stmt($3);
+        top_stmt_block = global_statement_stack.top();
+        top_stmt_block->insert(print_stmt);
+    }
     ;
 
 //---------------------------------------------------------------------
@@ -790,6 +883,18 @@ exit_statement:
 //---------------------------------------------------------------------
 assign_statement:
     variable T_ASSIGN expression
+    {
+        /*Expression *expr;
+        string str, value;
+        Gpl_type var_type = $1->get_var_type();
+        
+        if (var_type == STRING)
+        {
+            value = expr->eval_string();
+        }
+        str = $1->get_var_name();
+        Symbol *sym = symbol_table->lookup(sym);*/
+    }
     | variable T_PLUS_ASSIGN expression
     | variable T_MINUS_ASSIGN expression
     ;
@@ -1401,6 +1506,9 @@ expression:
             $$ = new Expression($1, MATH_OP, $3);
     }
     | variable geometric_operator variable
+    {
+        
+    }
     ;
 
 //---------------------------------------------------------------------

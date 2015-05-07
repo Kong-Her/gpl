@@ -9,6 +9,8 @@ class Assignment_stmt: public Statement
 {
     public:
         Assignment_stmt(Variable *, Expression *);
+
+    protected:
         void execute();
 
     private:
