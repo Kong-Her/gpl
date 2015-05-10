@@ -9,10 +9,9 @@ Assignment_stmt::Assignment_stmt(Variable *var, Expression *expr, string op_type
 void Assignment_stmt::execute()
 {
     Symbol_table *symbol_table = Symbol_table::instance();
-    int expr_type, type;
+    Gpl_type type;
     Symbol *cur_sym = m_var->get_symbol();
     
-    expr_type = m_expr->get_type();    
     type = cur_sym->get_type();
 
     if (type == STRING)
@@ -31,7 +30,7 @@ void Assignment_stmt::execute()
             symbol_table->update_symbol(cur_sym);
         }
     }
-    else if (type == DOUBLE && expr_type != STRING)
+    else if (type == DOUBLE)
     {
         if (m_op_type == "=")
         {
@@ -51,7 +50,7 @@ void Assignment_stmt::execute()
             symbol_table->update_symbol(cur_sym);
         }
     }
-    else if (type == INT && expr_type == INT)
+    else if (type == INT)
     {
         if (m_op_type == "=")
         {
@@ -74,59 +73,87 @@ void Assignment_stmt::execute()
     }
     else if (type == GAME_OBJECT)
     {
-        //Status status;
-        string name = cur_sym->getId();
-        if (expr_type == INT)
+        Symbol *sym = m_var->get_symbol();
+        Game_object *game_obj = sym->get_game_object_value();
+        
+        if (m_op_type == "=")
         {
-            if (m_op_type == "=")
+            if (m_expr->get_type() == INT)
             {
-                int value = m_expr->eval_int();
-                cur_sym->get_game_object_value()->set_member_variable(name, value);
+                int val = m_expr->eval_int();
+                game_obj->set_member_variable(m_var->get_var_name(), val);
+                cur_sym->set_new_value(game_obj);
+                symbol_table->update_symbol(cur_sym);
             }
-            else if (m_op_type == "+=")
+            else if (m_expr->get_type() == DOUBLE)
             {
-                int total, value; 
-                cur_sym->get_game_object_value()->get_member_variable(name, value);
-                total = m_expr->eval_int() + value;
-                cur_sym->get_game_object_value()->set_member_variable(name, total);
+                double val = m_expr->eval_double();
+                game_obj->set_member_variable(m_var->get_var_name(), val);
+                cur_sym->set_new_value(game_obj);
+                symbol_table->update_symbol(cur_sym);
             }
-            else if (m_op_type == "-=")
+            else if (m_expr->get_type() == STRING)
             {
-                int total, value; 
-                cur_sym->get_game_object_value()->get_member_variable(name, value);
-                total = m_expr->eval_int() - value;
-                cur_sym->get_game_object_value()->set_member_variable(name, total);
+                string val = m_expr->eval_string();
+                game_obj->set_member_variable(m_var->get_var_name(), val);
+                cur_sym->set_new_value(game_obj);
+                symbol_table->update_symbol(cur_sym);
             }
+        }
+        else if (m_op_type == "+=")
+        {
+            if (m_expr->get_type() == INT)
+            {
+                int val, member_val; 
+                game_obj->get_member_variable(m_var->get_var_name(), member_val);
+                val = member_val - m_expr->eval_int();
+                game_obj->set_member_variable(m_var->get_var_name(), val);
+                cur_sym->set_new_value(game_obj);
+                symbol_table->update_symbol(cur_sym);
+            }
+            else if (m_expr->get_type() == DOUBLE)
+            {
+                double val, member_val;
+                game_obj->get_member_variable(m_var->get_var_name(), member_val);
+                val = member_val - m_expr->eval_double();
+                game_obj->set_member_variable(m_var->get_var_name(), val);
+                cur_sym->set_new_value(game_obj);
+                symbol_table->update_symbol(cur_sym);
+            }
+        }
+        else if (m_op_type == "-=")
+        {
+            if (m_expr->get_type() == INT)
+            {
+                int val, member_val; 
+                game_obj->get_member_variable(m_var->get_var_name(), member_val);
+                val = member_val - m_expr->eval_int();
+                game_obj->set_member_variable(m_var->get_var_name(), val);
+                cur_sym->set_new_value(game_obj);
+                symbol_table->update_symbol(cur_sym);
+            }
+            else if (m_expr->get_type() == DOUBLE)
+            {
+                double val, member_val;
+                game_obj->get_member_variable(m_var->get_var_name(), member_val);
+                val = member_val - m_expr->eval_double();
+                game_obj->set_member_variable(m_var->get_var_name(), val);
+                cur_sym->set_new_value(game_obj);
+                symbol_table->update_symbol(cur_sym);
+            }
+        }
 
-            //if (status == OK)
-            //{
-                //cur_sym->set_new_value(value);
-                //symbol_table->update_symbol(cur_sym);
-            //}
-        }
-        else if (expr_type == DOUBLE)
+    } 
+    else if (type == ANIMATION_BLOCK)
+    {
+        if (m_op_type == "=")
         {
-            double value = m_expr->eval_double();
-            /*status =*/ cur_sym->get_game_object_value()->set_member_variable(name, value);
-            //if (status == OK)
-            //{   
-                //cur_sym->set_new_value(value);
-                //symbol_table->update_symbol(cur_sym);
-            //}
         }
-        else if (expr_type == STRING)
+        else if (m_op_type == "+=")
         {
-            string value = m_expr->eval_string();
-            /*status =*/ cur_sym->get_game_object_value()->set_member_variable(name, value);
-            //if (status == OK)
-            //{
-                //cur_sym->set_new_value(value);
-                //symbol_table->update_symbol(cur_sym);
-            //}
         }
-
-   } 
-   else if (type == ANIMATION_BLOCK)
-   {
-   }
+        else if (m_op_type == "-=")
+        {
+        }
+    }
 }

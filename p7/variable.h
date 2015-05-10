@@ -24,6 +24,7 @@ class Variable
         Animation_block *get_animation_block();
         Gpl_type get_var_type();
         Symbol *get_symbol();
+        void set_variable(Symbol *);
 
     private:
         string m_var_name;

@@ -956,19 +956,31 @@ assign_statement:
     {
         ostringstream os1, os2;
         Symbol *sym = $1->get_symbol();
-        
-        if (sym->get_type() == STRING || 
+
+        if (sym->get_type() == GAME_OBJECT) //&& $3->get_type() != GAME_OBJECT)
+        {
+            Status status;
+            Gpl_type t;
+            status = sym->get_game_object_value()->get_member_variable_type(sym->getId(), t);
+            
+            if (status == OK && t == $3->get_type())
+            {
+                Statement *new_stmt = new Assignment_stmt($1, $3, "=");
+                global_statement_stack.top()->insert(new_stmt);
+            }
+            else
+            {
+                Error::error(Error::INVALID_LHS_OF_ASSIGNMENT, $1->get_var_name(),
+                             "game_object", "");
+            }
+        }
+        else if (sym->get_type() == STRING || 
             (sym->get_type() == DOUBLE && ($3->get_type() == INT || 
             $3->get_type() == DOUBLE)) ||
             (sym->get_type() == INT && $3->get_type() == INT))
         {
             Statement *new_stmt = new Assignment_stmt($1, $3, "=");
             global_statement_stack.top()->insert(new_stmt);
-        }
-        else if (sym->get_type() == GAME_OBJECT && $3->get_type() != GAME_OBJECT)
-        {
-            Error::error(Error::INVALID_LHS_OF_ASSIGNMENT, $1->get_var_name(),
-                         "game_object", "");
         }
         else
         {
@@ -995,8 +1007,26 @@ assign_statement:
         ostringstream os1, os2;
         Symbol *sym = $1->get_symbol();
 
-        if (sym->get_type() == STRING || 
-            (sym->get_type() == DOUBLE && $3->get_type() == (INT|DOUBLE)) ||
+        if (sym->get_type() == GAME_OBJECT)
+        {
+            Status status;
+            Gpl_type type;
+            status = sym->get_game_object_value()->get_member_variable_type(sym->getId(), type);
+
+            if (status == OK && type == $3->get_type())
+            {
+                Statement *new_stmt = new Assignment_stmt($1, $3, "+=");
+                global_statement_stack.top()->insert(new_stmt);
+            }
+            else 
+            {
+                Error::error(Error::INVALID_LHS_OF_PLUS_ASSIGNMENT, $1->get_var_name(),
+                             "game_object", "");
+            }
+        }
+        else if (sym->get_type() == STRING || 
+            (sym->get_type() == DOUBLE && ($3->get_type() == INT ||
+            $3->get_type() == DOUBLE)) ||
             (sym->get_type() == INT && $3->get_type() == INT))
         {
             Statement *new_stmt = new Assignment_stmt($1, $3, "+=");
@@ -1026,7 +1056,8 @@ assign_statement:
         ostringstream os1, os2;
         Symbol *sym = $1->get_symbol();
         
-        if ((sym->get_type() == DOUBLE && $3->get_type() == (INT|DOUBLE)) ||
+        if ((sym->get_type() == DOUBLE && ($3->get_type() == INT ||
+            $3->get_type() == DOUBLE)) ||
             (sym->get_type() == INT && $3->get_type() == INT))
         {
             Statement *new_stmt = new Assignment_stmt($1, $3, "-=");
@@ -1103,7 +1134,15 @@ variable:
                 $$ = undeclared_var;
             }
         }
-        if (sym == NULL)
+
+        Symbol *s = symbol_table->lookup(*$1);
+
+        if (s)
+        {
+            Error::error(Error::VARIABLE_NOT_AN_ARRAY, *$1, "", "");
+            $$ = undeclared_var;
+        }
+        else if (sym == NULL)
         {
             Error::error(Error::UNDECLARED_VARIABLE, *$1, "", "");
             $$ = undeclared_var;

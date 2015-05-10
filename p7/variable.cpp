@@ -45,4 +45,8 @@ Gpl_type Variable::get_var_type()
 Symbol *Variable::get_symbol()
 {
     return m_sym;
+}        
+void Variable::set_variable(Symbol *sym)
+{
+    m_sym = sym;
 }

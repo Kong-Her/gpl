@@ -46,7 +46,7 @@ Animation_block *Symbol::get_animation_block_value()
 }
 Game_object *Symbol::get_game_object_value()
 {
-        return m_game_obj;
+    return m_game_obj;
 }
 int Symbol::getInt()
 {
@@ -106,4 +106,8 @@ void Symbol::set_new_value(double val)
 void Symbol::set_new_value(int val)
 {
     m_int_val = val;
+}
+void Symbol::set_new_value(Game_object *game_obj)
+{
+    m_game_obj = game_obj;
 }

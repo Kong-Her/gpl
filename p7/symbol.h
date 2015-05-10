@@ -32,6 +32,7 @@ class Symbol
       void set_new_value(string);
       void set_new_value(double);
       void set_new_value(int);
+      void set_new_value(Game_object *);
 
     private:
       Game_object *m_game_obj;
